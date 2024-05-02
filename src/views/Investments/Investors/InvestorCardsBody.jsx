@@ -1,30 +1,103 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SimpleBar from "simplebar-react";
 import { Inbox, MoreVertical, Star, UserCheck } from "react-feather";
-import { Button, Card, Col, Dropdown, Form, Row } from "react-bootstrap";
+import { Card, Col, Dropdown, Row } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import classNames from "classnames";
+// import classNames from "classnames";
 import InvestorDetails from "./InvestorDetails";
-import { investors } from "./InvestorList";
+import { Pagination } from "@mui/material";
+// import { investors } from "./InvestorList";
 
 const dropdownItems = [
-  { label: "Reply", value: "reply", className: "icon wb-reply" },
-  { label: "Forward", value: "forward", className: "icon wb-share" },
-  { label: "Delete", value: "delete", className: "icon wb-trash" },
+  { label: "Reply", value: "reply", className: "icon wb-reply"},
+  { label: "Forward", value: "forward", className: "icon wb-share"},
+  { label: "Delete", value: "delete", className: "icon wb-trash"},
 ];
 
 const InvestorCardsBody = () => {
   const [showDetails, setShowDetails] = useState(false);
-  const [name, setName] = useState("");
+  const [id, setId] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [avatar, setAvatar] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+
+  const [investors, setInvestors] = useState(null);
+  const [displayInvestors, setDisplayInvestors] = useState(null);
+  const [pageCount, setPageCount] = useState(0);
+  const [page, setPage] = useState(1);
+
+  const [role, setRole] = useState("");
+
+  const gotoPage = (e, page) => {
+    setPage(page);
+    setDisplayInvestors(investors?.slice(10 * (page - 1), 10 * page));
+  }
+
+  const deleteInvestor = async(investorId, label) => {
+    if(label === "Delete") {
+      const formData = {investorId};
+      try {
+        // const res = await fetch('http://localhost:8080/investor/deleteInvestorById',{
+        const res = await fetch('http://104.131.170.242:8080/investor/deleteInvestorById',{
+          method: 'POST',
+          headers: {
+            'Content-type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        })
+      } catch(err) {
+        console.error(err);
+      }
+    }
+
+    getAllInvestors();
+  }
+
+  const getAllInvestors = async() => {
+    try{
+      // const res = await fetch('http://localhost:8080/investor/getAllInvestors', {
+      const res = await fetch('http://104.131.170.242:8080/investor/getAllInvestors', {
+        method: 'GET',
+        headers: {
+          'Content-type': 'application/json'
+        }
+      });
+
+      if(res.ok) {
+        res.json().then(data => {
+          setInvestors(data);
+          setDisplayInvestors(data.slice(0, 10));
+          if(data?.length % 10 === 0 ) {
+            setPageCount(Math.floor(data?.length / 10));
+          } else {
+            setPageCount(Math.floor(data?.length / 10) + 1);
+          }
+          setPage(1);
+        })
+      }
+    } catch (err) {
+      console.error('Error during fetching investors');
+    }
+  }
+
+  const HideDetail = () => {
+    getAllInvestors();
+    setShowDetails(!showDetails);
+  }
+
+  useEffect(() => {
+    getAllInvestors();
+    setRole(localStorage.getItem('jampackRole'));
+  }, []);
 
   return (
     <>
       <div className="contact-body">
         <SimpleBar className="nicescroll-bar">
           <div className="contact-card-view">
-            <Row className="mb-3">
+            {/* <Row className="mb-3">
               <Col xs={7} mb={3}>
                 <div className="contact-toolbar-left">
                   <Form.Group className="d-xxl-flex d-none align-items-center mb-0">
@@ -68,25 +141,6 @@ const InvestorCardsBody = () => {
                       />
                     </label>
                   </div>
-                  {/* <div className="dataTables_length" id="datable_1_length">
-                    <label>
-                      View
-                      <Form.Select size="sm" name="datable_1_length">
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                        <option value={100}>100</option>
-                      </Form.Select>
-                    </label>
-                  </div>
-                  <div
-                    className="dataTables_info"
-                    id="datable_1_info"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    1 - 10 of 11
-                  </div> */}
                   <div
                     className="dataTables_paginate paging_simple_numbers"
                     id="datable_1_paginate"
@@ -142,46 +196,59 @@ const InvestorCardsBody = () => {
                   </div>
                 </div>
               </Col>
-            </Row>
+            </Row> */}
             <Row className="row-cols-xxl-5 row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-1 mb-5 gx-3">
-              {investors.map((item, index) => (
-                <Col key={item?.id}>
+              {displayInvestors?.map((item, index) => (
+                <Col key={item?._id}>
                   <Card className="card-border contact-card">
                     <Card.Body className="text-center">
-                      <div className="card-action-wrap">
-                        <Dropdown>
-                          <Dropdown.Toggle
-                            variant="flush-dark"
-                            className="btn-icon btn-rounded flush-soft-hover no-caret "
-                          >
-                            <span className="btn-icon-wrap">
-                              <span className="feather-icon">
-                                <MoreVertical />
+                      { role === "admin" ? (
+                        <div className="card-action-wrap">
+                          <Dropdown>
+                            <Dropdown.Toggle
+                              variant="flush-dark"
+                              className="btn-icon btn-rounded flush-soft-hover no-caret "
+                            >
+                              <span className="btn-icon-wrap">
+                                <span className="feather-icon">
+                                  <MoreVertical />
+                                </span>
                               </span>
-                            </span>
-                          </Dropdown.Toggle>
-                          <Dropdown.Menu align="end">
-                            {dropdownItems.map((item, index) => (
-                              <Dropdown.Item key={index}>
-                                <i
-                                  className={item?.className}
-                                  aria-hidden="true"
-                                />
-                                {item?.label}
-                              </Dropdown.Item>
-                            ))}
-                          </Dropdown.Menu>
-                        </Dropdown>
-                      </div>
-                      <div
-                        className={classNames(
-                          "avatar avatar-xl avatar-rounded",
-                          `avatar-${item?.initAvatar?.variant}`
-                        )}
-                      >
-                        <span className="initial-wrap">
-                          {item?.initAvatar?.title}
-                        </span>
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu align="end">
+                              {dropdownItems.map((dropdownItem, index) => (
+                                <Dropdown.Item 
+                                  key={index} 
+                                  onClick={() => deleteInvestor(item?._id, dropdownItem?.label)}
+                                >
+                                  <i
+                                    className={dropdownItem?.className}
+                                    aria-hidden="true"
+                                  />
+                                  {dropdownItem?.label}
+                                </Dropdown.Item>
+                              ))}
+                            </Dropdown.Menu>
+                          </Dropdown>
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                      
+                      <div className="avtuploder-circle">
+                        {
+                            item?.avatar === "" ? (
+                                <div className='avatar avatar-xl avatar-rounded avatar-soft-primary'>
+                                    <span className='initial-wrap'>
+                                        {item?.firstName[0]}
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className='avatar avatar-xl avatar-rounded avatar-soft-primary avtuploder-wrapper'>
+                                    <img src={item?.avatar} alt='demo Img' className='avtuploder-preview' width={115} height={115} />
+                                </div>
+                            )
+                        }
                       </div>
                       <div className="user-name">
                         <span className="contact-star">
@@ -189,10 +256,10 @@ const InvestorCardsBody = () => {
                             <Star />
                           </span>
                         </span>
-                        {item?.name}
+                        {item?.firstName +" " + item?.lastName}
                       </div>
                       <div className="user-email">{item?.email}</div>
-                      <div className="user-contact">{item?.phone}</div>
+                      <div className="user-contact"> +{item?.phone}</div>
                       <div className="user-desg">
                         <span className="badge badge-primary badge-indicator badge-indicator-lg me-2" />
                         {item?.category}
@@ -211,7 +278,10 @@ const InvestorCardsBody = () => {
                         className="d-flex align-items-center"
                         onClick={() => {
                           setShowDetails(!showDetails);
-                          setName(item?.name);
+                          setId(item?._id);
+                          setAvatar(item?.avatar);
+                          setFirstName(item?.firstName);
+                          setLastName(item?.lastName);
                           setEmail(item?.email);
                           setPhone(item?.phone);
                         }}
@@ -233,51 +303,14 @@ const InvestorCardsBody = () => {
                 md={5}
                 className="d-flex align-items-center justify-content-center justify-content-md-start"
               >
-                <div className="dataTables_info">1 - 10 of 30</div>
               </Col>
               <Col sm={12} md={7}>
-                <ul className="pagination custom-pagination pagination-simple mb-0 justify-content-center justify-content-md-end">
-                  <li className="paginate_button page-item previous disabled">
-                    <a
-                      href="#some"
-                      data-dt-idx={0}
-                      tabIndex={0}
-                      className="page-link"
-                    >
-                      <i className="ri-arrow-left-s-line" />
-                    </a>
-                  </li>
-                  <li className="paginate_button page-item active">
-                    <a
-                      href="#some"
-                      data-dt-idx={1}
-                      tabIndex={0}
-                      className="page-link"
-                    >
-                      1
-                    </a>
-                  </li>
-                  <li className="paginate_button page-item ">
-                    <a
-                      href="#some"
-                      data-dt-idx={2}
-                      tabIndex={0}
-                      className="page-link"
-                    >
-                      2
-                    </a>
-                  </li>
-                  <li className="paginate_button page-item next">
-                    <a
-                      href="#some"
-                      data-dt-idx={4}
-                      tabIndex={0}
-                      className="page-link"
-                    >
-                      <i className="ri-arrow-right-s-line" />
-                    </a>
-                  </li>
-                </ul>
+                <Pagination
+                  count={pageCount} 
+                  page={page}
+                  onChange={gotoPage}
+                  color="primary"
+                />
               </Col>
             </Row>
           </div>
@@ -285,11 +318,14 @@ const InvestorCardsBody = () => {
       </div>
 
       <InvestorDetails
-        name={name}
+        id={id}
+        firstName={firstName}
+        lastName={lastName}
         email={email}
         phone={phone}
+        avatar={avatar}
         show={showDetails}
-        onHide={() => setShowDetails(!showDetails)}
+        onHide={() => HideDetail()}
       />
     </>
   );

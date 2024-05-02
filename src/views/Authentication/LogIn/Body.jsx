@@ -27,7 +27,7 @@ const Body = () => {
             const formData = {userName, password};
             try {
                 // const res = await fetch('http://localhost:8080/auth/signin', {
-                const res = await fetch('http://159.89.241.201:8080/auth/signin', {
+                const res = await fetch('http://104.131.170.242:8080/auth/signin', {
                     method: 'POST',
                     headers: {
                         'Content-type': 'application/json'
@@ -37,7 +37,18 @@ const Body = () => {
 
                 if(res.ok) {
                     message.success("Login Successful");
-                    history.push("/dashboard");
+                    res.json().then(data => {
+                        const token = data.token;
+                        localStorage.setItem("jampackToken", token);
+                        const role = data.role;
+                        localStorage.setItem("jampackRole", role);
+                        if(role === "admin") {
+                            history.push("/investors");
+                        } else {
+                            history.push("/dashboard");
+                        }
+                    })
+                    // history.push("/dashboard");
                 } else {
                     res.json().then(data => {
                         message.error(data.message);

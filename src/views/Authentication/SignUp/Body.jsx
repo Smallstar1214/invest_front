@@ -15,9 +15,13 @@ import logoutImg from '../../../assets/dist/img/macaroni-logged-out.png';
 import { message } from 'antd';
 
 const Body = () => {
-  const [name, setName] = useState('');
+
+  const [role, setRole] = useState("investor");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -25,10 +29,10 @@ const Body = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = {name, userName, email, password};
+    const formData = {firstName, lastName, userName, email, phone, password, role};
     try {
         // const res = await fetch('http://localhost:8080/auth/signup', {
-        const res = await fetch('http://159.89.241.201:8080/auth/signup', {
+        const res = await fetch('http://104.131.170.242:8080/auth/signup', {
             method: 'POST',
             headers: {
                 'Content-type': 'application/json'
@@ -81,6 +85,26 @@ const Body = () => {
               <Form className="w-100" onSubmit={e => handleSubmit(e)}>
                 <Row>
                   <Col lg={10} className="mx-auto">
+                    <Row className="gx-3">
+                      <Col lg={6} as={Form.Group} className="mb-3">
+                        <Button
+                          variant={`${role === "investor" ? "primary" : ""}`}
+                          className="btn-rounded btn-block mb-3"
+                          onClick={() => setRole("investor")}
+                        >
+                          <span>Sign Up as Investor</span>
+                        </Button>
+                      </Col>
+                      <Col lg={6} as={Form.Group} className="mb-3">
+                        <Button
+                          variant={`${role === "investor" ? "" : "primary"}`}
+                          className="btn-rounded btn-block mb-3"
+                          onClick={() => setRole("company")}
+                        >
+                          <span>Sign Up as Company</span>
+                        </Button>
+                      </Col>
+                    </Row>
                     <h4 className="text-center mb-4">Sign Up to Jampack</h4>
                     {/* <Button
                       variant="outline-dark"
@@ -107,59 +131,87 @@ const Body = () => {
                     {/* <div className="title-sm title-wth-divider divider-center my-4">
                       <span>Or</span>
                     </div> */}
-                    <Row className="gx-3">
-                      <Col lg={6} as={Form.Group} className="mb-3">
-                        <Form.Label>Name</Form.Label>
-                        <Form.Control
-                          placeholder="Enter your name"
-                          type="text"
-                          value={name} 
-                          onChange={e => setName(e.target.value)}
-                        />
-                      </Col>
-                      <Col lg={6} as={Form.Group} className="mb-3">
-                        <Form.Label>Username</Form.Label>
-                        <Form.Control
-                          placeholder="Enter username"
-                          type="text"
-                          value={userName} 
-                          onChange={e => setUserName(e.target.value)}
-                        />
-                      </Col>
-                      <Col lg={12} as={Form.Group} className="mb-3">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          placeholder="Enter your email id"
-                          type="text"
-                          value={email} 
-                          onChange={e => setEmail(e.target.value)}
-                        />
-                      </Col>
-                      <Col lg={12} as={Form.Group} className="mb-3">
-                        <Form.Label>Password</Form.Label>
-                        <InputGroup className="password-check">
-                          <span className="input-affix-wrapper affix-wth-text">
+                    {
+                      role === "company" ? (
+                        <Row className="gx-3">
+                          
+                        </Row>
+                      ) : (
+                        <Row className="gx-3">
+                          <Col lg={6} as={Form.Group} className="mb-3">
+                            <Form.Label>First Name</Form.Label>
                             <Form.Control
-                              placeholder="6+ characters"
-                              type={showPassword ? "text" : "password"}
-                              value={password} 
-                              onChange={e => setPassword(e.target.value)}
+                              placeholder="Enter your first name"
+                              type="text"
+                              value={firstName} 
+                              onChange={e => setFirstName(e.target.value)}
                             />
-                            <Link
-                              to="#"
-                              className="input-suffix text-primary text-uppercase fs-8 fw-medium"
-                              onClick={() => setShowPassword(!showPassword)}
-                            >
-                              {showPassword ? (
-                                <span>Hide</span>
-                              ) : (
-                                <span>Show</span>
-                              )}
-                            </Link>
-                          </span>
-                        </InputGroup>
-                      </Col>
-                    </Row>
+                          </Col>
+                          <Col lg={6} as={Form.Group} className="mb-3">
+                            <Form.Label>Last Name</Form.Label>
+                            <Form.Control
+                              placeholder="Enter your last name"
+                              type="text"
+                              value={lastName} 
+                              onChange={e => setLastName(e.target.value)}
+                            />
+                          </Col>
+                          <Col lg={12} as={Form.Group} className="mb-3">
+                            <Form.Label>Username</Form.Label>
+                            <Form.Control
+                              placeholder="Enter username"
+                              type="text"
+                              value={userName} 
+                              onChange={e => setUserName(e.target.value)}
+                            />
+                          </Col>
+                          <Col lg={12} as={Form.Group} className="mb-3">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                              placeholder="Enter your email id"
+                              type="text"
+                              value={email} 
+                              onChange={e => setEmail(e.target.value)}
+                            />
+                          </Col>
+                          <Col lg={12} as={Form.Group} className="mb-3">
+                            <Form.Label>Phone</Form.Label>
+                            <Form.Control
+                              placeholder="Enter your phone number"
+                              type="text"
+                              value={phone} 
+                              onChange={e => setPhone(e.target.value)}
+                            />
+                          </Col>
+    
+                          <Col lg={12} as={Form.Group} className="mb-3">
+                            <Form.Label>Password</Form.Label>
+                            <InputGroup className="password-check">
+                              <span className="input-affix-wrapper affix-wth-text">
+                                <Form.Control
+                                  placeholder="6+ characters"
+                                  type={showPassword ? "text" : "password"}
+                                  value={password} 
+                                  onChange={e => setPassword(e.target.value)}
+                                />
+                                <Link
+                                  to="#"
+                                  className="input-suffix text-primary text-uppercase fs-8 fw-medium"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                >
+                                  {showPassword ? (
+                                    <span>Hide</span>
+                                  ) : (
+                                    <span>Show</span>
+                                  )}
+                                </Link>
+                              </span>
+                            </InputGroup>
+                          </Col>
+                        </Row>
+                      )
+                    }
+                    
                     <Form.Check id="logged_in" className="form-check-sm mb-3">
                       <Form.Check.Input type="checkbox" defaultChecked />
                       <Form.Check.Label className="text-muted fs-7">
