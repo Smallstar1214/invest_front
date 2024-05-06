@@ -8,10 +8,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBehance, faDropbox, faGithub, faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 import HkAvatarUploader from '../../../components/@hk-avatar-uploader/@hk-avatar-uploader';
 import { message } from 'antd';
+import { FormControl, Input, InputLabel, ListItemText, MenuItem, Select } from '@mui/material';
 //Image
 // import avatar2 from '../../../assets/dist/img/avatar2.jpg';
 
-const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email, phone, onConfirm }) => {
+const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email, phone, business, language, investSize, howSoon, summary }) => {
 
     const [showEdit, setShowEdit] = useState(false);
     const [role, setRole] = useState("");
@@ -26,12 +27,47 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
     const [editEmail, setEditEmail] = useState("");
     const [editPhone, setEditPhone] = useState("");
 
+    const [showEditPreference, setShowEditPreference] = useState(false);
+    const [editBusinessType, setEditBusinessType] = useState([]);
+    const [showBusinessType, setShowBusinessType] = useState([]);
+    const [editInvestmentSize, setEditInvestmentSize] = useState(0);
+    const [showInvestmentSize, setShowInvestmentSize] = useState(0);
+    const [editLanguage, setEditLanguage] = useState([]);
+    const [showLanguage, setShowLanguage] = useState([]);
+    const [editInvestDay, setEditInvestDay] = useState(0);
+    const [showInvestDay, setShowInvestDay] = useState(0);
+
+    const [isEditSummary, setIsEditSummary] = useState(false);
+    const [showSummary, setShowSummary] = useState("");
+    const [editSummary, setEditSummary] = useState("");
+
+    const types = ['startups', 'pre-IPOs', 'IPOs'];
+    const languages = ['English', 'Spanish', 'Dutch', 'French', 'German', 'Greek', 'Italian', 'Portuguese', 'Swedish', 'Polish', 'Russian', 'Turkish', 'Ukrainian', 'Arabic', 'Hebrew', 'Urdu', 'Hindi', 'Thai', 'Vietnamese', 'Chinese', 'Korean', 'Japanese', 'Mandarin'];
+
+    const onhandleChange = (e) => {
+        const selectedItems = e.target.value;
+        setEditBusinessType(selectedItems);
+    }
+
+    const onhandleLanguageChange = (e) => {
+        const selectedItems = e.target.value;
+        setEditLanguage(selectedItems);
+    }
+
     const showEditModal = () => {
         setShowEdit(true);
     }
 
     const onHideEditModal = () => {
         setShowEdit(false);
+    }
+
+    const onEditPreference = () => {
+        setShowEditPreference(true);
+    }
+
+    const onHideEditPreference = () => {
+        setShowEditPreference(false);
     }
 
     const updateData = async() => {
@@ -67,6 +103,79 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
         }
     }
 
+    const updatePreference = async() => {
+
+        setShowBusinessType(editBusinessType);
+        setShowInvestDay(editInvestDay);
+        setShowInvestmentSize(editInvestmentSize);
+        setShowLanguage(editLanguage);
+
+        const formData = {id, editBusinessType, editInvestmentSize, editLanguage, editInvestDay};
+
+        try {
+            // const res = await fetch('http://localhost:8080/investor/updatePreference', {
+            const res = await fetch('http://104.131.170.242:8080/investor/updatePreference', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+
+            if(res.ok) {
+                message.success("Update correctly");
+                setShowEditPreference(false);
+            } else {
+                res.json().then(data => {
+                    message.error(data.message);
+                    setShowEditPreference(false);
+                })
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    const updateSummary = async() => {
+
+        setShowSummary(editSummary);
+        setIsEditSummary(false);
+
+        const formData = {id, editSummary};
+
+        try {
+            //const res = await fetch('http://localhost:8080/investor/updateSummary', {
+            const res = await fetch('http://104.131.170.242:8080/investor/updateSummary', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+
+            if(res.ok) {
+                message.success("Update correctly");
+                setShowEditPreference(false);
+            } else {
+                res.json().then(data => {
+                    message.error(data.message);
+                    setShowEditPreference(false);
+                })
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    const onHideModal = () => {
+        if(showSummary === "") {
+            setIsEditSummary(true);
+        } else {
+            setIsEditSummary(false);
+        }
+        onHide();
+    }
+
     useEffect(() => {
         setShowFirstName(firstName);
         setEditFirstName(firstName);
@@ -76,6 +185,22 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
         setEditEmail(email);
         setShowPhone(phone);
         setEditPhone(phone);
+        setShowBusinessType(business);
+        setEditBusinessType(business);
+        setShowInvestmentSize(investSize);
+        setEditInvestmentSize(investSize);
+        setShowLanguage(language);
+        setEditLanguage(language);
+        setShowInvestDay(howSoon);
+        setEditInvestDay(howSoon);
+
+        if(summary === "") {
+            setIsEditSummary(true);
+        } else {
+            setIsEditSummary(false);
+        }
+        setShowSummary(summary);
+        setEditSummary(summary);
     },[id]);
 
     useEffect(() => {
@@ -84,7 +209,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
 
     return (
         <>
-            <Modal show={show} onHide={onHide} centered size="xl" dialogClassName="contact-detail-modal" >
+            <Modal show={show} onHide={() => onHideModal()} centered size="xl" dialogClassName="contact-detail-modal" >
                 <Modal.Body className="p-0">
                     <header className="contact-header">
                         <div className="d-flex align-items-center">
@@ -255,31 +380,37 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                                     <Card>
                                         <Card.Header>
                                             <a href="#some">Investment Preferences</a>
-                                            {/* <Button size="xs" variant="light" className="btn-icon btn-rounded" data-bs-toggle="tooltip" data-bs-placement="top" title data-bs-original-title="Edit">
-                                                <span className="icon">
-                                                    <span className="feather-icon">
-                                                        <Edit2 />
-                                                    </span>
-                                                </span>
-                                            </Button> */}
+                                            {
+                                                role === "admin" ? (
+                                                    <Button size="xs" variant="light" className="btn-icon btn-rounded" data-bs-toggle="tooltip" data-bs-placement="top" title data-bs-original-title="Edit" onClick={onEditPreference}>
+                                                        <span className="icon">
+                                                            <span className="feather-icon">
+                                                                <Edit2 />
+                                                            </span>
+                                                        </span>
+                                                    </Button>
+                                                ) : (
+                                                    <></>
+                                                )
+                                            }
                                         </Card.Header>
                                         <Card.Body>
                                             <ul className="cp-info">
                                                 <li>
                                                     <span>Business Type</span>
-                                                    <span>Start-ups, Pre-IPO</span>
+                                                    <span>{showBusinessType.join(", ")}</span>
                                                 </li>
                                                 <li>
                                                     <span>Investment Size</span>
-                                                    <span>$250,000</span>
+                                                    <span>${showInvestmentSize}</span>
                                                 </li>
                                                 <li>
                                                     <span>Language</span>
-                                                    <span>English, Spanish</span>
+                                                    <span>{showLanguage.join(", ")}</span>
                                                 </li>
                                                 <li>
                                                     <span>How soon?</span>
-                                                    <span>In next 30 days</span>
+                                                    <span>In next {showInvestDay} days</span>
                                                 </li>
                                                 <li>
                                                     <span>Location</span>
@@ -443,7 +574,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                                                     <span className="nav-link-text">Email</span>
                                                 </Nav.Link>
                                             </Nav.Item>
-                                            <Nav.Item>
+                                            {/* <Nav.Item>
                                                 <Nav.Link eventKey="tab_call">
                                                     <span className="nav-icon-wrap">
                                                         <span className="feather-icon">
@@ -452,22 +583,60 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                                                     </span>
                                                     <span className="nav-link-text">Calls</span>
                                                 </Nav.Link>
-                                            </Nav.Item>
+                                            </Nav.Item> */}
                                         </Nav >
                                         <Tab.Content className="mt-7">
                                             <Tab.Pane eventKey="tab_summary">
-                                                <Form>
+                                            {
+                                                isEditSummary ? (
+                                                        <>
+                                                        {
+                                                            role === "admin" ? (
+                                                                <Form>
+                                                                    <Row>
+                                                                        <Col md={12} as={Form.Group} className="mb-1">
+                                                                            
+                                                                            <div className="form-label-group">
+                                                                                <Form.Label>Write a Summary</Form.Label>
+                                                                                <small className="text-muted">{1200 - editSummary?.length}</small>
+                                                                            </div>
+                                                                            <Form.Control as="textarea" rows={8} placeholder="Write an internal summary" value={editSummary} onChange={(e) => setEditSummary(e.target.value)} />
+                                                                        </Col>
+                                                                    </Row>
+                                                                    <Button variant="outline-light" onClick={() => updateSummary()}>{showSummary?.length === 0 ? "Add Summary" : "Edit Summary"}</Button>
+                                                                </Form>
+                                                            ) : (
+                                                                <div>
+                                                                    No Summary
+                                                                </div>
+                                                            )
+                                                        }
+                                                        </>
+                                                ) : (
                                                     <Row>
-                                                        <Col md={12} as={Form.Group} className="mb-3">
-                                                            <div className="form-label-group">
-                                                                <Form.Label>Write a Summary</Form.Label>
-                                                                <small className="text-muted">1200</small>
+                                                        <Col md={9} as={Form.Group} className='mb-1'>
+                                                            <div className='form-label-group'>
+                                                                <Form.Label>{showSummary}</Form.Label>
                                                             </div>
-                                                            <Form.Control as="textarea" rows={8} placeholder="Write an internal summary" />
+                                                        </Col>
+                                                        <Col md={3} as={Form.Group} className='mb-1'>
+                                                        {
+                                                            role === "admin" ? (
+                                                                <Button size="xs" variant="light" className="btn-icon btn-rounded" data-bs-toggle="tooltip" data-bs-placement="top" title data-bs-original-title="Edit" onClick={() => setIsEditSummary(true)}>
+                                                                    <span className="icon">
+                                                                        <span className="feather-icon">
+                                                                            <Edit2 />
+                                                                        </span>
+                                                                    </span>
+                                                                </Button>
+                                                            ) : (
+                                                                <></>
+                                                            )
+                                                        }
                                                         </Col>
                                                     </Row>
-                                                    <Button variant="outline-light">Add Summary</Button>
-                                                </Form>
+                                                )
+                                            }
                                             </Tab.Pane>
                                             <Tab.Pane eventKey="tab_invest">
                                                 <Form>
@@ -639,12 +808,12 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                     <div className='contact-body contact-detail-body mx-2'>
                         <Row className='gx-3'>
                             <Col lg={3} as={Form.Group} className='mb-3'>
-                                <Form.Label>First Name</Form.Label>
+                                <Form.Label>Investment Size</Form.Label>
                             </Col>
                             <Col lg={9} as={Form.Group} className='mb-3'>
                                 <Form.Control
-                                    type="text"
-                                    value={editFirstName}
+                                    type="number"
+                                    value={editInvestmentSize}
                                     onChange={e => setEditFirstName(e.target.value)}
                                 />
                             </Col>
@@ -693,6 +862,107 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                         </Row>
                     </div>
                 </Modal.Body>
+            </Modal>
+
+            <Modal show={showEditPreference} onHide={onHideEditPreference} centered size='x' dialogClassName='contact-detail-modal'>
+                <Modal.Body className='p-0'>
+                    <header className='contact-header mb-4'>
+                        <div className='d-flex align-items-center text-center'>
+                            <span>Investment Prefenreces</span>
+                        </div>
+                    </header>
+                    <div className='contact-body contact-detail-body mx-2'>
+                        <Row className='gx-3 align-items-center'>
+                            <Col lg={3} as={Form.Group} className='mb-3'>
+                                <Form.Label>Business Type</Form.Label>
+                            </Col>
+                            <Col lg={9} as={Form.Group} className='mb-3'>
+                                <FormControl className='w-100'>
+                                    {/* <InputLabel>Select Options</InputLabel> */}
+                                    <Select
+                                        multiple
+                                        value={editBusinessType}
+                                        onChange={onhandleChange}
+                                        renderValue={(selected) => selected.join(', ')}
+                                    >
+                                        {types.map((type) => (
+                                            <MenuItem key={type} value={type}>
+                                                {type}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Col>
+                        </Row>
+                        <Row className='gx-3 align-items-center'>
+                            <Col lg={3} as={Form.Group} className='mb-3'>
+                                <Form.Label>Invest Size($)</Form.Label>
+                            </Col>
+                            <Col lg={9} as={Form.Group} className='mb-3 d-flex align-items-center'>
+                                <Form.Control
+                                    type="number"
+                                    value={editInvestmentSize}
+                                    onChange={e => setEditInvestmentSize(e.target.value)}
+                                />
+                            </Col>
+                        </Row>
+                        <Row className='gx-3 align-items-center'>
+                            <Col lg={3} as={Form.Group} className='mb-3'>
+                                <Form.Label>Language</Form.Label>
+                            </Col>
+                            <Col lg={9} as={Form.Group} className='mb-3'>
+                                <FormControl className='w-100'>
+                                    {/* <InputLabel>Select Options</InputLabel> */}
+                                    <Select
+                                        multiple
+                                        required
+                                        value={editLanguage}
+                                        onChange={onhandleLanguageChange}
+                                        renderValue={(selected) => selected.join(', ')}
+                                    >
+                                        {languages.map((type) => (
+                                            <MenuItem key={type} value={type}>
+                                                {type}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Col>
+                        </Row>
+                        <Row className='gx-3 align-items-center'>
+                            <Col lg={3} as={Form.Group} className='mb-3'>
+                                <Form.Label>How Soon?</Form.Label>
+                            </Col>
+                            <Col lg={2} as={Form.Group} className='mb-3'>
+                                <Form.Label>in Next </Form.Label>
+                            </Col>
+                            <Col lg={4} as={Form.Group} className='mb-3'>
+                                <Form.Control
+                                    type="number"
+                                    value={editInvestDay}
+                                    onChange={e => setEditInvestDay(e.target.value)}
+                                />
+                            </Col>
+                            <Col lg={2} as={Form.Group} className='mb-3'>
+                                <Form.Label>days</Form.Label>
+                            </Col>
+                        </Row>
+                        <Row className='gx-3 align-items-center'>
+                            <Col lg={9} as={Form.Group} className='mb-3'>
+                            </Col>
+                            <Col lg={3} as={Form.Group} className='mb-3'>
+                                <Button 
+                                    size='lg' 
+                                    variant='primary' 
+                                    className='btn-rounded btn-block mb-3'
+                                    onClick={() => updatePreference()}
+                                >
+                                    <span>Confirm</span>
+                                </Button>
+                            </Col>
+                        </Row>
+                    </div>
+                </Modal.Body>             
             </Modal>
         </>
     )

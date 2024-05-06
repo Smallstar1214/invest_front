@@ -22,6 +22,12 @@ const InvestorCardsBody = () => {
   const [avatar, setAvatar] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  
+  const [business, setBusiness] = useState([]);
+  const [language, setLanguage] = useState([]);
+  const [investSize, setInvestSize] = useState(0);
+  const [howSoon, setHowSoon] = useState(0);
+  const [summary, setSummary] = useState("");
 
   const [investors, setInvestors] = useState(null);
   const [displayInvestors, setDisplayInvestors] = useState(null);
@@ -284,6 +290,11 @@ const InvestorCardsBody = () => {
                           setLastName(item?.lastName);
                           setEmail(item?.email);
                           setPhone(item?.phone);
+                          setBusiness(item?.business);
+                          setLanguage(item?.language);
+                          setInvestSize(item?.investSize);
+                          setHowSoon(item?.howSoon);
+                          setSummary(item?.summary);
                         }}
                       >
                         <span className="feather-icon me-2">
@@ -325,6 +336,11 @@ const InvestorCardsBody = () => {
         phone={phone}
         avatar={avatar}
         show={showDetails}
+        business={business}
+        language={language}
+        investSize={investSize}
+        howSoon={howSoon}
+        summary={summary}
         onHide={() => HideDetail()}
       />
     </>
