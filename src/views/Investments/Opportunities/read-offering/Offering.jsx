@@ -10,7 +10,7 @@ const Offering = () => {
       </div>
       <ul className="list-ul ps-3">
         {offeringListItems.map((item) => (
-          <li className="mb-1">
+          <li key={item.id} className="mb-1">
             <span>{item.listItem}</span>
           </li>
         ))}

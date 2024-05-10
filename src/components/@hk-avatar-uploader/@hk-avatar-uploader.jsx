@@ -10,10 +10,10 @@ const HkAvatarUploader = ({ id, defaultImg, firstName }) => {
         e.preventDefault();
         setImageSrc(URL.createObjectURL(e.target.files[0]));
         const formdata = new FormData();
-        formdata.append('img', e.target.files[0]);
+        formdata.append('file', e.target.files[0]);
         formdata.append('id', id);
         // axios.post('http://localhost:8080/download/image', formdata)
-        axios.post('http://104.131.170.242:8080/download/image', formdata)
+        axios.post('https://autoinvest.ai/download/image', formdata)
             .then(res => {
                 console.log(res);
             })

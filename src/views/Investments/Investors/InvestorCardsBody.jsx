@@ -46,7 +46,7 @@ const InvestorCardsBody = () => {
       const formData = {investorId};
       try {
         // const res = await fetch('http://localhost:8080/investor/deleteInvestorById',{
-        const res = await fetch('http://104.131.170.242:8080/investor/deleteInvestorById',{
+        const res = await fetch('https://autoinvest.ai/investor/deleteInvestorById',{
           method: 'POST',
           headers: {
             'Content-type': 'application/json'
@@ -64,7 +64,7 @@ const InvestorCardsBody = () => {
   const getAllInvestors = async() => {
     try{
       // const res = await fetch('http://localhost:8080/investor/getAllInvestors', {
-      const res = await fetch('http://104.131.170.242:8080/investor/getAllInvestors', {
+      const res = await fetch('https://autoinvest.ai/investor/getAllInvestors', {
         method: 'GET',
         headers: {
           'Content-type': 'application/json'

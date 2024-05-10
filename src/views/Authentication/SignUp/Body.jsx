@@ -32,7 +32,7 @@ const Body = () => {
     const formData = {firstName, lastName, userName, email, phone, password, role};
     try {
         // const res = await fetch('http://localhost:8080/auth/signup', {
-        const res = await fetch('http://104.131.170.242:8080/auth/signup', {
+        const res = await fetch('https://autoinvest.ai/auth/signup', {
             method: 'POST',
             headers: {
                 'Content-type': 'application/json'
@@ -42,7 +42,14 @@ const Body = () => {
 
         if(res.ok) {
             message.success("Register Successfully");
-            history.push("/dashboard");
+            res.json().then(data => {
+              localStorage.setItem("jampackToken", data.token);
+              const role = data.role;
+              localStorage.setItem("jampackRole", role);
+              localStorage.setItem("jampackId", data.id);
+              history.push("/dashboard");
+            })
+            
         } else {
           res.json().then(data => {
             message.error(data.message);

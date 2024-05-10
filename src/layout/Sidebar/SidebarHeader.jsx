@@ -17,8 +17,8 @@ const SidebarHeader = ({ navCollapsed, toggleCollapsedNav }) => {
     return (
         <div className="menu-header">
             <span>
-                <Link className="navbar-brand" to="/">
-                    <img className="brand-img img-fluid" src={logo} alt="brand" />
+                <Link className="flex items-center" to="/">
+                    <img className="brand-img img-fluid me-2" src={logo} alt="brand" />
                     <img className="brand-img img-fluid" src={jampackImg} alt="brand" />
                 </Link>
                 <Button id="tggl-btn" variant="flush-dark" onClick={toggleSidebar} className="btn-icon btn-rounded flush-soft-hover navbar-toggle">

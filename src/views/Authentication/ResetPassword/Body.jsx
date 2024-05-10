@@ -24,7 +24,7 @@ const Body = () => {
 
     try {
       // const res = await fetch('http://localhost:8080/auth/resetPassword', {
-      const res = await fetch('http://104.131.170.242:8080/auth/resetPassword', {
+      const res = await fetch('https://autoinvest.ai/auth/resetPassword', {
         method: 'POST',
         headers: {
           'Content-type': 'application/json'

@@ -31,6 +31,7 @@ const useTablePageSize = (data, page, rowsPerPage) => {
 
     }, [data, setTableRange, page, rowsPerPage, setSlice]);
 
+    
     return { slice, range: tableRange };
 };
 

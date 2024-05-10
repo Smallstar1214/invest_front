@@ -119,31 +119,31 @@ export const opportunityItems = [
   {
     id: 1,
     listItem: (
-      <text>
+      <p>
         <strong>Market Potential: </strong>Autonomous Smart Contracts and
         on-chain web capabilities, positions it to capture a significant share
         in the market and to revolutionize various industry sectors.
-      </text>
+      </p>
     ),
   },
   {
     id: 2,
     listItem: (
-      <text>
+      <p>
         <strong>Decentralization Benefits: </strong>Embracing genuine
         decentralization, provides a robust alternative to traditional
         centralized systems, offering enhanced security and autonomy.
-      </text>
+      </p>
     ),
   },
   {
     id: 3,
     listItem: (
-      <text>
+      <p>
         <strong>Community and User Base Expansion: </strong>The platform's
         engaging and growing community indicates a strong potential for
         widespread adoption.
-      </text>
+      </p>
     ),
   },
 ];

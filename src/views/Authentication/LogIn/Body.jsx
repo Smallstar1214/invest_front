@@ -27,7 +27,7 @@ const Body = () => {
             const formData = {userName, password};
             try {
                 // const res = await fetch('http://localhost:8080/auth/signin', {
-                const res = await fetch('http://104.131.170.242:8080/auth/signin', {
+                const res = await fetch('https://autoinvest.ai/auth/signin', {
                     method: 'POST',
                     headers: {
                         'Content-type': 'application/json'
@@ -38,10 +38,10 @@ const Body = () => {
                 if(res.ok) {
                     message.success("Login Successful");
                     res.json().then(data => {
-                        const token = data.token;
-                        localStorage.setItem("jampackToken", token);
+                        localStorage.setItem("jampackToken", data.token);
                         const role = data.role;
                         localStorage.setItem("jampackRole", role);
+                        localStorage.setItem("jampackId", data.id);
                         if(role === "admin") {
                             history.push("/investors");
                         } else {

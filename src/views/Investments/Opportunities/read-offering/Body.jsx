@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import SimpleBar from "simplebar-react";
 import { Link } from "react-router-dom";
 import { Rating } from "react-simple-star-rating";
@@ -32,6 +32,7 @@ import Offering from "./Offering";
 import Documents from "./Documents";
 import SimilarCompanies from "./SimilarCompanies";
 import { dealTermsItems, relatedCompanies } from "./data";
+import InvestDialog from "./InvestDialog";
 
 const imageList = [
   { id: 1, src: slide1, alt: "slide1" },
@@ -41,6 +42,40 @@ const imageList = [
 ];
 
 const Body = () => {
+
+  const [amount, setAmount] = useState("");
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+
+  function addCommas(numberString) {
+    const parts = numberString.split(".");
+    let integerPart = parts[0];
+    const decimalPart = parts[1] ? "." + parts[1] : "";
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return integerPart + decimalPart;
+  }
+
+  const handleChange = (e) => {
+    const amt = e.target.value;
+    setAmount(amt);
+    if(Number(amt) > 0) {
+      setError("");
+    }
+    if(Number(amt) >= 250) {
+      setError("");
+    }
+  }
+
+  const handleInvest = () => {
+    if (!amount.trim()) {
+      setError("Required");
+    } else if (Number(amount) < 250) {
+      setError("Amount must be atleast $250");
+    } else {
+      setShowModal(true);
+    }
+  };
+
   return (
     <>
       <div className="integrations-body">
@@ -59,7 +94,7 @@ const Body = () => {
                     </div>
                   </div>
                   <div className="media-body">
-                    <h3 className="hd-bold mb-0">Kickstarter</h3>
+                    <h3>Kickstarter</h3>
                     <span>by Hencework</span>
                     <div className="d-flex align-items-center mt-1">
                       <div className="d-flex align-items-center">
@@ -237,7 +272,7 @@ const Body = () => {
                         <h4 className="m-0">$830,141</h4>
                         <p>Raised from 917 investors</p>
 
-                        <div className="d-flex justify-content-between align-items-center mt-4">
+                        <div className="d-flex justify-content-between mt-4">
                           <div xl={4} lg={4} sm={4} md={4} xs={6}>
                             <h6 className="m-0">INVEST</h6>
                             <p>min $250</p>
@@ -246,8 +281,18 @@ const Body = () => {
                             <Form
                               className="mx-3 flex-grow-1 w-150p"
                               role="search"
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                handleInvest();
+                              }}
                             >
-                              <Form.Control type="text" placeholder="$0" />
+                              <Form.Control
+                                type="text"
+                                placeholder="$0"
+                                value={amount}
+                                onChange={handleChange}
+                              />
+                              {error && <Form.Text className="text-danger">{error}</Form.Text>}
                             </Form>
                           </div>
                         </div>
@@ -255,6 +300,7 @@ const Body = () => {
                         <Button
                           style={{ height: "5.5vh" }}
                           className="btn-block mt-6"
+                          onClick={handleInvest}
                         >
                           INVEST NOW
                         </Button>
@@ -378,6 +424,17 @@ const Body = () => {
           </Container>
         </SimpleBar>
       </div>
+
+      {showModal &&
+        <InvestDialog
+          open={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setAmount("");
+          }}
+          amount={addCommas(amount)}
+        />
+      }
     </>
   );
 };

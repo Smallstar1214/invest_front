@@ -66,6 +66,11 @@ export const SidebarMenu = [
                 icon: <Icons.UserSearch />,
                 path: '/accounts-and-security',
             },
+            {
+                name: 'KYC Verification',
+                icon: <Icons.Checklist />,
+                path: '/kyc',
+            },
         ]
     },
     

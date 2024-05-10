@@ -9,7 +9,7 @@ const SimilarCompanies = () => {
       <h6 className="text-center mt-10 mb-4">Similar Companies Like This</h6>
       <Row>
         {similarCompanies.map((item) => (
-          <Col xl={3} md={6}>
+          <Col key={item.id} xl={3} md={6}>
             <Card className="card-border text-center">
               <Card.Body>
                 {item.image}

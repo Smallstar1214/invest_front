@@ -35,7 +35,7 @@ const Body = () => {
                   style={{ minHeight: "26vh" }}
                   className="card-border card-int mb-4"
                 >
-                  <Card.Body>
+                  <Card.Body className="text-black">
                     <div className="avatar avatar-sm avatar-logo mb-3">
                       <span className="initial-wrap">
                         <img
@@ -89,7 +89,7 @@ const Body = () => {
             {popularCompanies.map((item) => (
               <Col key={item.id} xxl={3} xl={4} md={6}>
                 <Card className="card-border card-int mb-4">
-                  <Card.Body>
+                  <Card.Body className="text-black">
                     {item.image}
                     <div className="app-name">{item.name}</div>
                     <div className="app-cat">{item.category}</div>

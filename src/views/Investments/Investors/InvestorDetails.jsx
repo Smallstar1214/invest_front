@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Col, Dropdown, Form, Modal, Nav, Row, Tab } from 'react-bootstrap';
+import { Button, Card, Col, Form, Modal, Nav, Row, Tab } from 'react-bootstrap';
 import { Rating } from 'react-simple-star-rating';
-import { Activity, Archive, ChevronLeft, ChevronRight, Edit2, Edit3, Heart, Mail, MoreVertical, Phone, Plus, Shield, Slash, Star, Trash, Upload, Video, XSquare, Zap } from 'react-feather';
+import { Activity, Edit2, Edit3, Heart, Mail, Shield, Trash, Upload, Zap } from 'react-feather';
 import { Link } from 'react-router-dom';
 import SimpleBar from 'simplebar-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -80,7 +80,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
         const formData = {id, editFirstName, editLastName, editEmail, editPhone};
         try {
             // const res = await fetch('http://localhost:8080/investor/updateData', {
-            const res = await fetch('http://104.131.170.242:8080/investor/updateData', {
+            const res = await fetch('https://autoinvest.ai/investor/updateData', {
             
                 method: 'POST',
                 headers: {
@@ -90,7 +90,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
             });
 
             if(res.ok) {
-                message.success("Update correctly");
+                message.success("Updated Correctly");
                 setShowEdit(false);
             } else {
                 res.json().then(data => {
@@ -114,7 +114,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
 
         try {
             // const res = await fetch('http://localhost:8080/investor/updatePreference', {
-            const res = await fetch('http://104.131.170.242:8080/investor/updatePreference', {
+            const res = await fetch('https://autoinvest.ai/investor/updatePreference', {
                 method: 'POST',
                 headers: {
                     'Content-type': 'application/json'
@@ -123,7 +123,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
             })
 
             if(res.ok) {
-                message.success("Update correctly");
+                message.success("Updated Correctly");
                 setShowEditPreference(false);
             } else {
                 res.json().then(data => {
@@ -144,8 +144,8 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
         const formData = {id, editSummary};
 
         try {
-            //const res = await fetch('http://localhost:8080/investor/updateSummary', {
-            const res = await fetch('http://104.131.170.242:8080/investor/updateSummary', {
+            // const res = await fetch('http://localhost:8080/investor/updateSummary', {
+            const res = await fetch('https://autoinvest.ai/investor/updateSummary', {
                 method: 'POST',
                 headers: {
                     'Content-type': 'application/json'
@@ -154,7 +154,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
             })
 
             if(res.ok) {
-                message.success("Update correctly");
+                message.success("Updated Correctly");
                 setShowEditPreference(false);
             } else {
                 res.json().then(data => {
@@ -398,7 +398,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                                             <ul className="cp-info">
                                                 <li>
                                                     <span>Business Type</span>
-                                                    <span>{showBusinessType.join(", ")}</span>
+                                                    <span>{showBusinessType?.join(", ")}</span>
                                                 </li>
                                                 <li>
                                                     <span>Investment Size</span>
@@ -406,7 +406,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                                                 </li>
                                                 <li>
                                                     <span>Language</span>
-                                                    <span>{showLanguage.join(", ")}</span>
+                                                    <span>{showLanguage?.join(", ")}</span>
                                                 </li>
                                                 <li>
                                                     <span>How soon?</span>
@@ -574,16 +574,6 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                                                     <span className="nav-link-text">Email</span>
                                                 </Nav.Link>
                                             </Nav.Item>
-                                            {/* <Nav.Item>
-                                                <Nav.Link eventKey="tab_call">
-                                                    <span className="nav-icon-wrap">
-                                                        <span className="feather-icon">
-                                                            <Phone />
-                                                        </span>
-                                                    </span>
-                                                    <span className="nav-link-text">Calls</span>
-                                                </Nav.Link>
-                                            </Nav.Item> */}
                                         </Nav >
                                         <Tab.Content className="mt-7">
                                             <Tab.Pane eventKey="tab_summary">

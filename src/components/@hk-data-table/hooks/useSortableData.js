@@ -16,6 +16,7 @@ const useSortableData = (items, config = null) => {
                 return sortConfig.direction === 'descending' ? 1 : -1;
             });
         }
+
         return sortableItems;
     }, [items, sortConfig]);
 

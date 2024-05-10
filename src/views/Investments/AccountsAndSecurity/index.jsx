@@ -3,8 +3,8 @@ import { Container, Nav, Tab } from "react-bootstrap";
 import PrivacySettings from "./PrivacySettings";
 import LoginAndSecurity from "./LoginAndSecurity";
 import Account from "./Account";
-import BillingInfo from "./BillingInfo";
 import Notifications from "./Notifications";
+import BillingInfo from "./BillingInfo";
 
 const AccountsAndSecurity = () => {
   return (
@@ -39,7 +39,7 @@ const AccountsAndSecurity = () => {
             </Nav.Item>
             <Nav.Item>
               <Nav.Link eventKey="tabBlock4">
-                <span className="nav-link-text">Billing Info</span>
+                <span className="nav-link-text">Payments and Billing</span>
               </Nav.Link>
             </Nav.Item>
             <Nav.Item>

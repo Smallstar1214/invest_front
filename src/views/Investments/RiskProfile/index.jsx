@@ -4,6 +4,8 @@ import Stocks from "./Stocks";
 import Bonds from "./Bonds";
 import OtherInvestments from "./OtherInvestments";
 import StockInfo from "./StockInfo";
+import { Button } from "react-bootstrap";
+import { message } from "antd";
 
 const RiskProfile = () => {
   const [riskScore, setRiskScore] = useState(0);
@@ -25,6 +27,10 @@ const RiskProfile = () => {
     setShowInfo(!showInfo);
   }
 
+  const handleSave = () => {
+    message.success('Risk Profile Saved Successfully !');
+  }
+
   return (
     <>
       {/* header */}
@@ -38,6 +44,12 @@ const RiskProfile = () => {
 
       {/* body */}
       <div className="p-4">
+          <div className="d-flex justify-content-end">
+            <Button onClick={handleSave} className="btn-soft-primary border-primary">
+              Save Profile
+            </Button>
+          </div>
+
         {/* custom slider */}
         <CustomSlider riskScore={riskScore} />
 

@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import useSortableData from "./hooks/useSortableData";
 import useTablePageSize from "./hooks/useTablePageSize";
 import classNames from "classnames";
-import { Form, Table } from "react-bootstrap";
-import { Star } from "react-feather";
+import { Button, Col, Dropdown, Form, Modal, Row, Table } from "react-bootstrap";
+import { Download, MoreHorizontal, Star, Trash2, UserPlus } from "react-feather";
 import { ArrowsSort, SortAscending, SortDescending } from "tabler-icons-react";
 import TableFooter from "./TableFooter";
 import useRowSelect from "./hooks/useRowSelect";
 import useStarred from "./hooks/useStarred";
+import axios from "axios";
+import { message } from "antd";
 
 const HkDataTable = ({
   column,
@@ -29,17 +31,24 @@ const HkDataTable = ({
   searchQuery,
   searchClasses,
   markStarred,
+  DeleteFile,
   ...rest
 }) => {
-  const [data, setData] = React.useState(rowData);
+
+  // const [data, setData] = React.useState(rowData);
   const [page, setPage] = React.useState(1);
   const [searchTerm, setSearchTerm] = React.useState("");
   // custom hooks for data table
-  const { items, requestSort, sortConfig } = useSortableData(data);
+  const { items, requestSort, sortConfig } = useSortableData(rowData);
   const { slice, range } = useTablePageSize(items, page, rowsPerPage);
   const { selectAll, handleRowSelection, handleSelectAll, isRowSelected } =
-    useRowSelect(slice, data);
-  const { handleStared, favData } = useStarred(rowData);
+    useRowSelect(slice);
+  // const { handleStared, favData } = useStarred(rowData);
+  const { handleStared} = useStarred(rowData);
+
+  const [openShareModal, setOpenShareModal] = useState(false);
+  const [shareUserName, setShareUserName] = useState("");
+  const [selectedId, setSelectedId] = useState("");
 
   //Search Filter
   React.useEffect(() => {
@@ -65,10 +74,50 @@ const HkDataTable = ({
         )
   );
 
-  // Add Favorites
-  React.useEffect(() => {
-    setData(favData);
-  }, [favData]);
+  const createdBy = localStorage.getItem('jampackId');
+
+  const handleDeleteFile = (docId) => {
+
+      const formData = {docId};
+
+      // axios.post('http://localhost:8080/document/deleteOneDocument', formData)
+      axios.post('https://autoinvest.ai/document/deleteOneDocument', formData)
+          .then(res => {
+              if(res.status === 200) {
+                  message.success("deleted successfully");
+                  DeleteFile(createdBy);
+              } else {
+                  message.error(res.data.message);
+              }
+          })
+          .catch(err => {
+              console.log("Error: ", err);
+          })
+  }
+
+  const shareDoc = () => {
+    const formData = {selectedId, shareUserName};
+    // axios.post('http://localhost:8080/document/shareDocument', formData)
+    axios.post('https://autoinvest.ai/document/shareDocument', formData)
+         .then(res => {
+            if(res.status === 200) {
+              message.success("Share this file successfully.");
+              setOpenShareModal(false);
+            }
+         })
+         .catch(err => {
+          console.log("Error: ", err);
+         })
+  }
+
+  const downloadFile = (fileName) => {
+        const link = document.createElement('a');
+        // link.href = `http://localhost:8080/documents/${fileName}`;
+        link.href = `https://autoinvest.ai/documents/${fileName}`;
+        link.download = fileName;
+        link.target = "_blank";
+        link.click();
+  }
 
   return (
     <>
@@ -85,7 +134,7 @@ const HkDataTable = ({
       )}
       <Table
         bsPrefix={bsPrefix}
-        className={classNames("hk-data-table", classes)}
+        className={classNames("hk-data-table", classes) + " h-100"}
         striped={striped}
         bordered={bordered}
         borderless={borderless}
@@ -152,6 +201,9 @@ const HkDataTable = ({
                 </span>
               </th>
             ))}
+            <th>
+              <span className="flex-grow-1">Actions</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -201,6 +253,44 @@ const HkDataTable = ({
                     : row[cols.accessor]}
                 </td>
               ))}
+              <td>
+                <span className="text-right">
+                  <Dropdown>
+                      <Dropdown.Toggle variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover no-caret" >
+                          <span className="icon">
+                              <span className="feather-icon">
+                                  <MoreHorizontal />
+                              </span>
+                          </span>
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                          <Dropdown.Item onClick={() => {
+                                    setSelectedId(row._id);
+                                    setOpenShareModal(true);
+                                  }}>
+                              <span 
+                                className="feather-icon dropdown-icon" 
+                                >
+                                  <UserPlus />
+                              </span>
+                              <span>Share</span>
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={() => downloadFile(row.document[0].fileName)}>
+                              <span className="feather-icon dropdown-icon" >
+                                  <Download />
+                              </span>
+                              <span>Download</span>
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={() => handleDeleteFile(row._id)}>
+                              <span className="feather-icon dropdown-icon" >
+                                  <Trash2 />
+                              </span>
+                              <span>Delete</span>
+                          </Dropdown.Item>
+                      </Dropdown.Menu>
+                  </Dropdown>
+                </span>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -211,10 +301,48 @@ const HkDataTable = ({
           slice={slice}
           setPage={setPage}
           page={page}
-          totalRows={data}
+          totalRows={rowData}
           paginatorSize={paginatorSize}
         />
       )}
+
+      <Modal show={openShareModal} onHide={() => setOpenShareModal(false)} centered size="md" dialogClassName='contact-detail-modal'>
+        <Modal.Body className='p-0'>
+          <header className='contact-header mb-4'>
+            <div className='d-flex align-items-center text-center'>
+                <span>My Documents Upload</span>
+            </div>
+          </header>
+          <div className="contact-body contact-detail-body mx-2">
+            <Row className='gx-3 align-items-center'>
+              <Col lg={3} as={Form.Group} className='mb-3 text-center'>
+                <Form.Label>UserName</Form.Label>
+              </Col>
+              <Col lg={9} as={Form.Group} className='mb-3'>
+                <Form.Control
+                  type="text"
+                  value={shareUserName}
+                  onChange={(e) => setShareUserName(e.target.value)}
+                />
+              </Col>
+            </Row>
+            <Row className='gx-3 align-items-center'>
+                  <Col lg={9} as={Form.Group} className='mb-3'>
+                  </Col>
+                  <Col lg={3} as={Form.Group} className='mb-3'>
+                      <Button 
+                          size='lg' 
+                          variant='primary'
+                          className='btn-rounded btn-block mb-3'
+                          onClick={() => shareDoc()}
+                      >
+                          <span>Share</span>
+                      </Button>
+                  </Col>
+              </Row>
+          </div>
+        </Modal.Body>
+      </Modal>
     </>
   );
 };

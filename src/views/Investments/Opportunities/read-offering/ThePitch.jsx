@@ -9,7 +9,7 @@ const ThePitch = () => {
       </div>
       <ul className="list-ul ps-3">
         {investmentSummaryItems.map((item) => (
-          <li className="mb-1">
+          <li key={item.id} className="mb-1">
             <span>{item.listItem}</span>
           </li>
         ))}
@@ -19,7 +19,7 @@ const ThePitch = () => {
         </div>
         <ul className="list-ul ps-3">
           {opportunityItems.map((item) => (
-            <li className="mb-1">
+            <li key={item.id} className="mb-1">
               <span>{item.listItem}</span>
             </li>
           ))}

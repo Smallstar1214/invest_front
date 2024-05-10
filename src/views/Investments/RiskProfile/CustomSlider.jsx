@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Slider, Space } from "antd";
-import { Row, Col } from "react-bootstrap";
+import { Row, Col, Button } from "react-bootstrap";
 
 const CustomSlider = ({ riskScore }) => {
 
