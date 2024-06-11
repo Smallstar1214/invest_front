@@ -10,7 +10,7 @@ const NewOpportunities = () => {
         <div style={{ left: 0 }} className="integrationsapp-content">
           <div className="integrationsapp-detail-wrap">
             <Header />
-            <div style={{ borderTop: "1px solid #eee" }} />
+              <div style={{ borderTop: "1px solid #eee" }} />
             <Body />
           </div>
         </div>

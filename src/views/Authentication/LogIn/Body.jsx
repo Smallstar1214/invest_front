@@ -42,6 +42,7 @@ const Body = () => {
                         const role = data.role;
                         localStorage.setItem("jampackRole", role);
                         localStorage.setItem("jampackId", data.id);
+                        localStorage.setItem("jampackUserName", data.userName);
                         if(role === "admin") {
                             history.push("/investors");
                         } else {

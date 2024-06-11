@@ -49,6 +49,7 @@ const HkDataTable = ({
   const [openShareModal, setOpenShareModal] = useState(false);
   const [shareUserName, setShareUserName] = useState("");
   const [selectedId, setSelectedId] = useState("");
+  const [role, setRole] = useState("");
 
   //Search Filter
   React.useEffect(() => {
@@ -58,6 +59,11 @@ const HkDataTable = ({
       setSearchTerm("");
     }
   }, [searchQuery]);
+
+  React.useEffect(() => {
+    const userRole = localStorage.getItem("jampackRole");
+    setRole(userRole);
+  }, [])
 
   const filteredData = slice.filter((item) =>
     searchTerm === ""
@@ -74,7 +80,7 @@ const HkDataTable = ({
         )
   );
 
-  const createdBy = localStorage.getItem('jampackId');
+  const companyName = localStorage.getItem('jampackUserName');
 
   const handleDeleteFile = (docId) => {
 
@@ -85,7 +91,7 @@ const HkDataTable = ({
           .then(res => {
               if(res.status === 200) {
                   message.success("deleted successfully");
-                  DeleteFile(createdBy);
+                  DeleteFile(companyName);
               } else {
                   message.error(res.data.message);
               }
@@ -201,9 +207,16 @@ const HkDataTable = ({
                 </span>
               </th>
             ))}
-            <th>
-              <span className="flex-grow-1">Actions</span>
-            </th>
+            {
+              role === "investor" ? (
+                <></>
+              ) : (
+                <th>
+                  <span className="flex-grow-1">Actions</span>
+                </th>
+              )
+            }
+            
           </tr>
         </thead>
         <tbody>
@@ -253,44 +266,40 @@ const HkDataTable = ({
                     : row[cols.accessor]}
                 </td>
               ))}
-              <td>
-                <span className="text-right">
-                  <Dropdown>
-                      <Dropdown.Toggle variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover no-caret" >
-                          <span className="icon">
-                              <span className="feather-icon">
-                                  <MoreHorizontal />
+              {
+                role === "company" ? (
+                  <td>
+                    <span className="text-right">
+                      <Dropdown>
+                          <Dropdown.Toggle variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover no-caret" >
+                              <span className="icon">
+                                  <span className="feather-icon">
+                                      <MoreHorizontal />
+                                  </span>
                               </span>
-                          </span>
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                          <Dropdown.Item onClick={() => {
-                                    setSelectedId(row._id);
-                                    setOpenShareModal(true);
-                                  }}>
-                              <span 
-                                className="feather-icon dropdown-icon" 
-                                >
-                                  <UserPlus />
-                              </span>
-                              <span>Share</span>
-                          </Dropdown.Item>
-                          <Dropdown.Item onClick={() => downloadFile(row.document[0].fileName)}>
-                              <span className="feather-icon dropdown-icon" >
-                                  <Download />
-                              </span>
-                              <span>Download</span>
-                          </Dropdown.Item>
-                          <Dropdown.Item onClick={() => handleDeleteFile(row._id)}>
-                              <span className="feather-icon dropdown-icon" >
-                                  <Trash2 />
-                              </span>
-                              <span>Delete</span>
-                          </Dropdown.Item>
-                      </Dropdown.Menu>
-                  </Dropdown>
-                </span>
-              </td>
+                          </Dropdown.Toggle>
+                          <Dropdown.Menu>
+                              <Dropdown.Item onClick={() => downloadFile(row.document[0].fileName)}>
+                                  <span className="feather-icon dropdown-icon" >
+                                      <Download />
+                                  </span>
+                                  <span>Download</span>
+                              </Dropdown.Item>
+                              <Dropdown.Item onClick={() => handleDeleteFile(row._id)}>
+                                  <span className="feather-icon dropdown-icon" >
+                                      <Trash2 />
+                                  </span>
+                                  <span>Delete</span>
+                              </Dropdown.Item>
+                          </Dropdown.Menu>
+                      </Dropdown>
+                    </span>
+                  </td>
+                ) : (
+                  <></>
+                )
+              }
+              
             </tr>
           ))}
         </tbody>

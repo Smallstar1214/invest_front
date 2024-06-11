@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import SimpleBar from "simplebar-react";
 import { Link } from "react-router-dom";
 import { Rating } from "react-simple-star-rating";
@@ -13,7 +13,7 @@ import {
   Tab,
   Form,
 } from "react-bootstrap";
-import { Bookmark, Share } from "react-feather";
+import { Bookmark, Edit2, Share } from "react-feather";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import HkBadge from "../../../../components/@hk-badge/@hk-badge";
@@ -32,20 +32,114 @@ import Offering from "./Offering";
 import Documents from "./Documents";
 import SimilarCompanies from "./SimilarCompanies";
 import { dealTermsItems, relatedCompanies } from "./data";
-import InvestDialog from "./InvestDialog";
+// import InvestDialog from "./InvestDialog";
+import StripeDialog from "./StripeDialog";
+import axios from 'axios';
 
-const imageList = [
-  { id: 1, src: slide1, alt: "slide1" },
-  { id: 2, src: slide2, alt: "slide2" },
-  { id: 3, src: slide3, alt: "slide3" },
-  { id: 4, src: slide4, alt: "slide4" },
-];
+// const imageList = [
+//   { id: 1, src: slide1, alt: "slide1" },
+//   { id: 2, src: slide2, alt: "slide2" },
+//   { id: 3, src: slide3, alt: "slide3" },
+//   { id: 4, src: slide4, alt: "slide4" },
+// ];
 
-const Body = () => {
+const Body = (data) => {
 
-  const [amount, setAmount] = useState("");
+  const fileInputRef = useRef(null);
+
+  const [companyName, setCompanyName] = useState('');
+
+  const [investAmount, setInvestAmount] = useState("");
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [role, setRole] = useState("");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const [offerData, setOfferData] = useState(null);
+
+  const [imageList, setImageList] = useState([]);
+
+  const [openEditMinInvest, setOpenEditMinInvest] = useState(false);
+  const [editMinInvest, setEditMinInvest] = useState(0);
+
+  const [openEditMaxInvest, setOpenEditMaxInvest] = useState(false);
+  const [editMaxInvest, setEditMaxInvest] = useState(0);
+
+  const [openEditFundingGoal, setOpenEditFundingGoal] = useState(false);
+  const [editFundingGoal, setEditFundingGoal] = useState(0);
+
+  const [openEditDeadline, setOpenEditDeadline] = useState(false);
+  const [editDeadline, setEditDeadline] = useState(new Date());
+
+  const [openEditTokenRange, setOpenEditTokenRange] = useState(false);
+  const [editMinToken, setEditMinToken] = useState(0);
+  const [editMaxToken, setEditMaxToken] = useState(0);
+
+  const [endDate, setEndDate] = useState(new Date());
+  const [differenceDays, setDifferenceDays] = useState(0);
+  const [differenceHours, setDifferenceHours] = useState(0);
+  const [differenceMinutes, setDifferenceMinutes] = useState(0);
+
+  const [investAlready, isInvestAlready] = useState(false);
+
+
+
+  const getCompanyOffers = async(searchCompanyName) => {
+    
+    const formData = {searchCompanyName};
+
+    try {
+      // const res = await fetch('http://localhost:8080/offer/getCompanyOffers', {
+      const res = await fetch('https://autoinvest.ai//offer/getCompanyOffers', {
+        method: 'POST',
+        headers: {
+          'Content-type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+
+      res.json().then(data => {
+        const loginUserName = localStorage.getItem('jampackUserName');
+        setOfferData(data[0]);
+        setImageList(data[0]?.projectImages);
+        setEndDate(new Date(data[0]?.endDate));
+        const differenceMilliseconds = new Date(data[0]?.endDate) - new Date();
+        setDifferenceDays(Math.floor(differenceMilliseconds / (1000 * 60 * 60 * 24)));
+        setDifferenceHours(Math.floor((differenceMilliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+        setDifferenceMinutes(Math.floor((differenceMilliseconds % (1000 * 60 * 60)) / (1000 * 60)))
+        setEditMinInvest(data[0]?.minInvest);
+        setEditMaxInvest(data[0]?.maxInvest);
+        setEditFundingGoal(data[0]?.fundingGoal);
+        setEditDeadline(new Date(data[0]?.endDate));
+        setEditMinToken(data[0]?.minToken);
+        setEditMaxToken(data[0]?.maxToken);
+
+        if(data[0]?.investors.length !== 0) {
+          const amount = findAmount(data[0]?.investors, loginUserName);
+
+          if(amount !== null) {
+            isInvestAlready(true);
+            setInvestAmount(amount);
+          } else {
+            isInvestAlready(false);
+          }
+        } 
+        
+      })
+    } catch (err) {
+      console.log(err);
+    }
+  } 
+
+  function findAmount(investorArray, investorToCheck) {
+      for (const obj of investorArray) {
+          if (obj.investor === investorToCheck) {
+              return obj.amount;
+          }
+      }
+      return null;
+     // Return null if the investor is not found
+}
 
   function addCommas(numberString) {
     const parts = numberString.split(".");
@@ -55,26 +149,144 @@ const Body = () => {
     return integerPart + decimalPart;
   }
 
-  const handleChange = (e) => {
+  const handleInvestAmountChange = (e) => {
     const amt = e.target.value;
-    setAmount(amt);
+    setInvestAmount(amt);
     if(Number(amt) > 0) {
       setError("");
     }
-    if(Number(amt) >= 250) {
+    if(Number(amt) >= offerData?.minInvest && Number(amt) <= offerData?.maxInvest) {
       setError("");
     }
   }
 
-  const handleInvest = () => {
-    if (!amount.trim()) {
+  const handleInvest = async() => {
+    if (!investAmount.trim()) {
       setError("Required");
-    } else if (Number(amount) < 250) {
-      setError("Amount must be atleast $250");
+    } else if (Number(investAmount) < offerData?.minInvest) {
+      const errorMessage = `Amount must be at least $${offerData.minInvest}`;
+      setError(errorMessage);
+    } else if (Number(investAmount) > offerData?.maxInvest) {
+      const errorMessage = `Amount cant be bigger than $${offerData?.maxInvest}`;
+      setError(errorMessage);
     } else {
-      setShowModal(true);
+      const loginUserName = localStorage.getItem('jampackUserName');
+      const formData = {
+        investAmount: investAmount,
+        companyName: companyName,
+        investor: loginUserName
+      };
+
+      try{
+        // const res = await fetch('http://localhost:8080/offer/updateInvest', {
+        const res = await fetch('https://autoinvest.ai//offer/updateInvest', {
+          method: 'POST',
+          headers: {
+            'Content-type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        res.json().then(data => {
+          setOfferData(data.data);
+          isInvestAlready(true);
+        })
+
+      } catch(err) {
+        console.log(err);
+      }
     }
   };
+
+  const handleImageChange = (index) => {
+    setSelectedImageIndex(index);
+  };
+
+  const handleImageUpload = (e) => {
+    // Do something with the file, such as uploading it to a server or displaying it preview
+    e.preventDefault();
+    const formdata = new FormData();
+    formdata.append('file', e.target.files[0]);
+    formdata.append('companyName', offerData?.companyName);
+    // axios.post('http://localhost:8080/download/uploadProductImage', formdata)
+    axios.post('https://autoinvest.ai/download/uploadProductImage', formdata)
+      .then(res => {
+          setImageList(res.data.data[0]?.projectImages);
+      })
+      .catch(err => {
+          console.log(err);
+      })
+  };
+
+  const updateDealTerms = async() => {
+    const formData = {
+      companyName: offerData?.companyName,
+      minInvest: editMinInvest,
+      maxInvest: editMaxInvest,
+      fundingGoal: editFundingGoal,
+      endDate: editDeadline,
+      minToken: editMinToken,
+      maxToken: editMaxToken
+    }
+
+    try {
+      // const res = await fetch('http://localhost:8080/offer/updateDealTerms', {
+      const res = await fetch('https://autoinvest.ai/offer/updateDealTerms', {
+        method: 'POST',
+        headers: {
+          'Content-type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      res.json().then(data => {
+        setEditMinInvest(data.data.minInvest);
+        setEditMaxInvest(data.data.maxInvest);
+        setEditFundingGoal(data.data.fundingGoal);
+        setEditDeadline(new Date(data.data.endDate));
+        setEditMinToken(data.data.minToken);
+        setEditMaxToken(data.data.maxToken);
+        setEndDate(new Date(data.data.endDate));
+        const differenceMilliseconds = new Date(data.data.endDate) - new Date();
+        setDifferenceDays(Math.floor(differenceMilliseconds / (1000 * 60 * 60 * 24)));
+        setDifferenceHours(Math.floor((differenceMilliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+        setDifferenceMinutes(Math.floor((differenceMilliseconds % (1000 * 60 * 60)) / (1000 * 60)))
+        setOpenEditMinInvest(false);
+        setOpenEditMaxInvest(false);
+        setOpenEditFundingGoal(false);
+        setOpenEditDeadline(false);
+        setOpenEditTokenRange(false);
+      })
+
+    } catch(err) {
+      console.error("Error during update Deal Terms: ", err);
+    }
+  }
+
+  const deleteProjectImage = () => {
+    const formdata = {
+      imgURL: imageList[selectedImageIndex],
+      companyName: offerData?.companyName
+    }
+    // axios.post('http://localhost:8080/download/deleteProductImage', formdata)
+    axios.post('https://autoinvest.ai/download/uploadProductImage', formdata)
+      .then(res => {
+          setImageList(res.data.data[0]?.projectImages);
+          if(selectedImageIndex === res.data.data[0]?.projectImages?.length && selectedImageIndex !== 0) {
+            setSelectedImageIndex(res.data.data[0]?.projectImages?.length - 1);
+          }
+      })
+      .catch(err => {
+          console.log(err);
+      })
+  }
+
+  useEffect(() => {
+    const loginRole = localStorage.getItem('jampackRole');
+    setRole(loginRole);
+    setCompanyName(data.data);
+    getCompanyOffers(data.data);
+  },[companyName]);
 
   return (
     <>
@@ -85,18 +297,26 @@ const Body = () => {
             <Row className="m-0 p-0">
               {/* left side: company logo */}
               <Col lg={9}>
-                <div className="media">
+                <div className="media mb-3">
                   <div className="media-head me-3">
                     <div className="avatar avatar-logo">
-                      <span className="initial-wrap bg-success-light-5">
-                        <img src={symbolAvatar15} alt="logo" />
-                      </span>
+                      {
+                        (!offerData?.logo || offerData?.logo === "") ? (
+                          <span className="initial-wrap bg-success-light-5">
+                            {offerData?.companyName[0]}
+                          </span>
+                        ) : (
+                          <span className="initial-wrap bg-success-light-5">
+                            <img src={offerData?.logo} alt="logo" />
+                          </span>
+                        )
+                      }
                     </div>
                   </div>
-                  <div className="media-body">
-                    <h3>Kickstarter</h3>
-                    <span>by Hencework</span>
-                    <div className="d-flex align-items-center mt-1">
+                  <div className="media-body mb-3">
+                    <h3>{offerData?.companyName}</h3>
+                    {/* <span>by Hencework</span> */}
+                    {/* <div className="d-flex align-items-center mt-1">
                       <div className="d-flex align-items-center">
                         <Rating
                           initialValue={3}
@@ -113,11 +333,11 @@ const Body = () => {
                           15M Downloads
                         </span>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </Col>
-              <Col lg={3}>
+              {/* <Col lg={3}>
                 <div className="d-flex mt-3">
                   <Button variant="light" size="sm" className="btn-block">
                     <span>
@@ -144,7 +364,7 @@ const Body = () => {
                     </span>
                   </Button>
                 </div>
-              </Col>
+              </Col> */}
             </Row>
 
             {/* row-2 */}
@@ -158,15 +378,59 @@ const Body = () => {
                     showIndicators={false}
                     showStatus={false}
                     emulateTouch={true}
-                    className="mt-6"
+                    className="mt-2 mb-2"
+                    onChange={handleImageChange}
+                    selectedItem={selectedImageIndex}
                   >
-                    {imageList.map((item) => (
-                      <div key={item.id}>
-                        <img src={item.src} alt={item.alt} />
+                    {imageList?.map((item) => (
+                      <div key={item}>
+                        <img src={item} alt={item} />
                       </div>
                     ))}
                   </Carousel>
                 </div>
+
+                {
+                  role === "company" ? (
+                    <Row>
+                      <Col lg={6}>
+                        {
+                          (imageList?.length !== 0) && (
+                            <Button 
+                                size='lg' 
+                                variant='primary'
+                                className='btn-rounded btn-block'
+                                onClick={() => deleteProjectImage()}
+                            >
+                                <span>Delete this image</span>
+                            </Button>
+                          )
+                        }
+                      </Col>
+                      <Col lg={6}>
+                        <input
+                            type="file"
+                            accept="image/*" // Accept only image files
+                            onChange={handleImageUpload}
+                            style={{ display: 'none' }} // Hide the input element
+                            ref={fileInputRef} // Reference to the input element
+                        />
+                        <Button 
+                            size='lg'
+                            variant='primary'
+                            className='btn-rounded btn-block'
+                            onClick={() => fileInputRef.current.click()}
+                        >
+                          <span>Upload New Image</span>
+                        </Button>
+                      </Col>
+                    </Row>
+                  ) : (
+                    <></>
+                  )
+                }
+
+                
                 <div className="separator" />
 
                 {/* TABS */}
@@ -201,16 +465,19 @@ const Body = () => {
                   {/* tabs body */}
                   <Tab.Content className="py-7">
                     <Tab.Pane eventKey="tabit1">
-                      <Company />
+                      {/* <Company /> */}
+                      <div dangerouslySetInnerHTML={{ __html: offerData?.companyTab }} />
                     </Tab.Pane>
                     <Tab.Pane eventKey="tabit2">
-                      <ThePitch />
+                      {/* <ThePitch /> */}
+                      <div dangerouslySetInnerHTML={{ __html: offerData?.pitchTab }} />
                     </Tab.Pane>
                     <Tab.Pane eventKey="tabit3">
-                      <Offering />
+                      {/* <Offering /> */}
+                      <div dangerouslySetInnerHTML={{ __html: offerData?.offeringTab }} />
                     </Tab.Pane>
                     <Tab.Pane eventKey="tabit4">
-                      <Documents />
+                      <Documents data = {data.data} />
                     </Tab.Pane>
                   </Tab.Content>
                 </Tab.Container>
@@ -235,28 +502,27 @@ const Body = () => {
                           className="mt-3 p-2"
                         >
                           <div className="text-center">
-                            <p className="text-white">CLOSING ON 23 FEB</p>
+                            <p className="text-white">CLOSING ON {endDate.getFullYear()}-{endDate.getMonth() + 1}-{endDate.getDate()}</p>
                             <p className="text-white fs-7">
-                              <span className="text-grey">@</span> 11:59 PM NEW
-                              YORK TIME
+                              {endDate.getHours().toString().padStart(2, '0')}:{endDate.getMinutes().toString().padStart(2, '0')}
                             </p>
                           </div>
                           <div className="d-flex justify-content-evenly mt-2">
                             <div>
                               <h5 className="m-0 text-center text-yellow">
-                                11
+                                {differenceDays}
                               </h5>
                               <p className="text-grey">Days</p>
                             </div>
                             <div>
                               <h5 className="m-0 text-center text-yellow">
-                                15
+                                {differenceHours.toString().padStart(2, '0')}
                               </h5>
                               <p className="text-grey">Hours</p>
                             </div>
                             <div>
                               <h5 className="m-0 text-center text-yellow">
-                                46
+                                {differenceMinutes.toString().padStart(2, '0')}
                               </h5>
                               <p className="text-grey">Mins</p>
                             </div>
@@ -266,44 +532,90 @@ const Body = () => {
 
                       {/* invest section */}
                       <div>
-                        <p className="text-success mb-3">
-                          FIRST GOAL HIT (You can still invest)
-                        </p>
-                        <h4 className="m-0">$830,141</h4>
-                        <p>Raised from 917 investors</p>
+                        {
+                          role === "investor" ? (
+                            (offerData?.totalInvestmoney >= offerData?.fundingGoal) ? (
+                              <p className="text-success mb-3">
+                                GOAL HIT (You can still invest)
+                              </p>
+                            ) : (
+                              investAlready ? (
+                                <p className="text-success mb-3">
+                                  You invested ${investAmount} already for this offer
+                                </p>
+                              ) : (
+                                <p className="text-success mb-3">
+                                  You have to invest....
+                                </p>
+                              )
+                                
+                            )
+                          ) : (
+                            role === "company" ? (
+                              <p className="text-success mb-3">
+                                You need more investment......
+                              </p>
+                            ) : (
+                              <></>
+                            )
+                          )
+                        }
+                        <h4 className="m-0">${offerData?.totalInvestMoney}</h4>
+                        <p>Raised from {offerData?.investors?.length} investors</p>
 
-                        <div className="d-flex justify-content-between mt-4">
-                          <div xl={4} lg={4} sm={4} md={4} xs={6}>
-                            <h6 className="m-0">INVEST</h6>
-                            <p>min $250</p>
-                          </div>
-                          <div xl={8} lg={8} sm={8} md={8} xs={6}>
-                            <Form
-                              className="mx-3 flex-grow-1 w-150p"
-                              role="search"
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                handleInvest();
-                              }}
-                            >
-                              <Form.Control
-                                type="text"
-                                placeholder="$0"
-                                value={amount}
-                                onChange={handleChange}
-                              />
-                              {error && <Form.Text className="text-danger">{error}</Form.Text>}
-                            </Form>
-                          </div>
-                        </div>
+                        {
+                          role === "investor" ? (
+                            investAlready ? (
+                              <></>
+                            ) : (
+                              <div className="d-flex justify-content-between mt-4">
+                                <div xl={4} lg={4} sm={4} md={4} xs={6}>
+                                  <h6 className="m-0">INVEST</h6>
+                                  <p>min ${offerData?.minInvest}</p>
+                                </div>
+                                <div xl={8} lg={8} sm={8} md={8} xs={6}>
+                                  <Form
+                                    className="mx-3 flex-grow-1 w-150p"
+                                    role="search"
+                                    onSubmit={(e) => {
+                                      e.preventDefault();
+                                      handleInvest();
+                                    }}
+                                  >
+                                    <Form.Control
+                                      type="text"
+                                      placeholder="$0"
+                                      value={investAmount}
+                                      onChange={handleInvestAmountChange}
+                                    />
+                                    {error && <Form.Text className="text-danger">{error}</Form.Text>}
+                                  </Form>
+                                </div>
+                              </div>
+                            )
+                            
+                          ) : (
+                            <></>
+                          )
+                        }
 
-                        <Button
-                          style={{ height: "5.5vh" }}
-                          className="btn-block mt-6"
-                          onClick={handleInvest}
-                        >
-                          INVEST NOW
-                        </Button>
+                        {
+                          role === "investor" ? (
+                            investAlready ? (
+                              <></>
+                            ) : (
+                              <Button
+                                style={{ height: "5.5vh" }}
+                                className="btn-block mt-6"
+                                onClick={handleInvest}
+                              >
+                                INVEST NOW
+                              </Button>
+                            )
+                          ) : (
+                            <></>
+                          )
+                        }
                       </div>
                     </Card.Body>
                   </Card>
@@ -317,15 +629,181 @@ const Body = () => {
 
                       {/* deal terms body */}
                       <ul className="list-unstyled">
-                        {dealTermsItems.map((item) => (
-                          <li key={item.id} className="mb-3">
-                            <div className="fs-7">{item.label}</div>
-                            <div className="text-dark fw-medium">
-                              {item.value}
-                            </div>
-                          </li>
-                        ))}
-                        <li>
+                        <li key={offerData?._id} className="mb-3">
+                          <div className=" d-flex justify-content-between fs-7">
+                            <span>minimum Investment</span>
+                            {
+                              role === "company" && !openEditMinInvest ? (
+                                <Button size="xs" variant="light" className="btn-icon btn-rounded" data-bs-toggle="tooltip" data-bs-placement="top" title data-bs-original-title="Edit" onClick={() => setOpenEditMinInvest(true)}>
+                                  <span className="icon">
+                                      <span className="feather-icon">
+                                          <Edit2 />
+                                      </span>
+                                  </span>
+                                </Button>
+                              ) : (
+                                <></>
+                              )
+                            } 
+                          </div>
+                          {
+                            openEditMinInvest ? (
+                              <Form.Control
+                                type="number"
+                                value={editMinInvest}
+                                onChange={e => setEditMinInvest(e.target.value)}
+                              />
+                            ) : (
+                              <div className="text-dark fw-medium">
+                                ${editMinInvest}
+                              </div>
+                            )
+                          }
+                          
+                        </li>
+                        <li key={offerData?._id} className="mb-3">
+                          <div className=" d-flex justify-content-between fs-7">
+                            <span>maximum Investment</span>
+                            {
+                              role === "company" && !openEditMaxInvest ? (
+                                <Button size="xs" variant="light" className="btn-icon btn-rounded" data-bs-toggle="tooltip" data-bs-placement="top" title data-bs-original-title="Edit" onClick={() => setOpenEditMaxInvest(true)}>
+                                  <span className="icon">
+                                      <span className="feather-icon">
+                                          <Edit2 />
+                                      </span>
+                                  </span>
+                                </Button>
+                              ) : (
+                                <></>
+                              )
+                            } 
+                          </div>
+                          {
+                            openEditMaxInvest ? (
+                              <Form.Control
+                                type="number"
+                                value={editMaxInvest}
+                                onChange={e => setEditMaxInvest(e.target.value)}
+                              />
+                            ) : (
+                              <div className="text-dark fw-medium">
+                                ${editMaxInvest}
+                              </div>
+                            )
+                          }
+                        </li>
+                        <li key={offerData?._id} className="mb-3">
+                        <div className=" d-flex justify-content-between fs-7">
+                            <span>Funding Goal</span>
+                            {
+                              role === "company" && !openEditFundingGoal ? (
+                                <Button size="xs" variant="light" className="btn-icon btn-rounded" data-bs-toggle="tooltip" data-bs-placement="top" title data-bs-original-title="Edit" onClick={() => setOpenEditFundingGoal(true)}>
+                                  <span className="icon">
+                                      <span className="feather-icon">
+                                          <Edit2 />
+                                      </span>
+                                  </span>
+                                </Button>
+                              ) : (
+                                <></>
+                              )
+                            } 
+                          </div>
+                          {
+                            openEditFundingGoal ? (
+                              <Form.Control
+                                type="number"
+                                value={editFundingGoal}
+                                onChange={e => setEditFundingGoal(e.target.value)}
+                              />
+                            ) : (
+                              <div className="text-dark fw-medium">
+                                ${editFundingGoal}
+                              </div>
+                            )
+                          }
+                        </li>
+                        <li key={offerData?._id} className="mb-3">
+                          <div className=" d-flex justify-content-between fs-7">
+                            <span>Deadline</span>
+                            {
+                              role === "company" && !openEditDeadline ? (
+                                <Button size="xs" variant="light" className="btn-icon btn-rounded" data-bs-toggle="tooltip" data-bs-placement="top" title data-bs-original-title="Edit" onClick={() => setOpenEditDeadline(true)}>
+                                  <span className="icon">
+                                      <span className="feather-icon">
+                                          <Edit2 />
+                                      </span>
+                                  </span>
+                                </Button>
+                              ) : (
+                                <></>
+                              )
+                            } 
+                          </div>
+                          {
+                            openEditDeadline ? (
+                              <Form.Control
+                                type="date"
+                                value={editDeadline}
+                                onChange={e => setEditDeadline(e.target.value)}
+                              />
+                            ) : (
+                              <div className="text-dark fw-medium">
+                                {editDeadline.getFullYear()}-{editDeadline.getMonth() + 1}-{endDate.getDate()}
+                              </div>
+                            )
+                          }
+                        </li>
+                        <li key={offerData?._id} className="mb-3">
+                        <div className=" d-flex justify-content-between fs-7">
+                            <span>Price per token</span>
+                            {
+                              role === "company"  && !openEditTokenRange ? (
+                                <Button size="xs" variant="light" className="btn-icon btn-rounded" data-bs-toggle="tooltip" data-bs-placement="top" title data-bs-original-title="Edit" onClick={() => setOpenEditTokenRange(true)}>
+                                  <span className="icon">
+                                      <span className="feather-icon">
+                                          <Edit2 />
+                                      </span>
+                                  </span>
+                                </Button>
+                              ) : (
+                                <></>
+                              )
+                            } 
+                          </div>
+
+                          {
+                            openEditTokenRange ? (
+                              <Row className='gx-3'>
+                                <Col lg={3} as={Form.Group} className='mb-3'>
+                                    <Form.Label>Min</Form.Label>
+                                </Col>
+                                <Col lg={9} as={Form.Group} className='mb-3'>
+                                  <Form.Control
+                                    type="number"
+                                    value={editMinToken}
+                                    onChange={e => setEditMinToken(e.target.value)}
+                                  />
+                                </Col>
+                                <Col lg={3} as={Form.Group} className='mb-3'>
+                                    <Form.Label>Max</Form.Label>
+                                </Col>
+                                <Col lg={9} as={Form.Group} className='mb-3'>
+                                  <Form.Control
+                                    type="number"
+                                    value={editMaxToken}
+                                    onChange={e => setEditMaxToken(e.target.value)}
+                                  />
+                                </Col>
+                              </Row>
+                            ) : (
+                              <div className="text-dark fw-medium">
+                                ${editMinToken} - ${editMaxToken}
+                              </div>
+                            )
+                          }
+                        </li>
+                        {/* <li>
                           <a
                             href="#some"
                             className="d-flex align-items-center link-danger"
@@ -335,13 +813,26 @@ const Body = () => {
                             </span>
                             Report abuse
                           </a>
-                        </li>
+                        </li> */}
                       </ul>
+
+                      {
+                        (openEditDeadline || openEditFundingGoal || openEditMaxInvest || openEditMinInvest || openEditTokenRange) && (
+                          <Button 
+                              size='lg' 
+                              variant='primary' 
+                              className='btn-rounded btn-block mb-3'
+                              onClick={() => updateDealTerms()}
+                          >
+                              <span>Confirm</span>
+                          </Button>
+                        )
+                      }
                     </Card.Body>
                   </Card>
 
                   {/* related companies */}
-                  <Card className="card-border">
+                  {/* <Card className="card-border">
                     <Card.Body>
                       <h6 className="mb-4">Related</h6>
                       <ListGroup as="ul" variant="flush">
@@ -378,10 +869,10 @@ const Body = () => {
                         ))}
                       </ListGroup>
                     </Card.Body>
-                  </Card>
+                  </Card> */}
 
                   {/* categories */}
-                  <Card className="card-border mt-3">
+                  {/* <Card className="card-border mt-3">
                     <Card.Body>
                       <h6 className="mb-4">Categories</h6>
                       <div className="tag-cloud">
@@ -414,7 +905,7 @@ const Body = () => {
                         </HkBadge>
                       </div>
                     </Card.Body>
-                  </Card>
+                  </Card> */}
                 </div>
               </Col>
             </Row>
@@ -425,7 +916,7 @@ const Body = () => {
         </SimpleBar>
       </div>
 
-      {showModal &&
+      {/* {showModal &&
         <InvestDialog
           open={showModal}
           onClose={() => {
@@ -434,7 +925,18 @@ const Body = () => {
           }}
           amount={addCommas(amount)}
         />
-      }
+      } */}
+
+      {/* {showModal &&
+        <StripeDialog
+          open={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setInvestAmount("");
+          }}
+          investAmount={addCommas(investAmount)}
+        />
+      } */}
     </>
   );
 };

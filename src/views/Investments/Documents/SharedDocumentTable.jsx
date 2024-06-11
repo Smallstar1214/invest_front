@@ -10,7 +10,7 @@ const SharedDocumentTable = () => {
     const getMySharedDocuments = async (id) => {
         try {
         //   const res = await fetch(`http://localhost:8080/document/getMySharedDocuments?id=${id}`,{
-          const res = await fetch('https://autoinvest.ai/document/getMyDocuments',{
+          const res = await fetch(`https://autoinvest.ai/document/getMySharedDocuments?id=${id}`,{
             method: 'GET',
             headers: {
               'Content-type': 'application/json'
@@ -22,16 +22,15 @@ const SharedDocumentTable = () => {
               setDocumentData(data.data);
             })
           }
-    
         } catch (err) {
           console.error(err);
         }
-      }
+    }
 
     useEffect(() => {
         const userId = localStorage.getItem("jampackId");
         getMySharedDocuments(userId);
-      },[])
+    },[])
 
     return (
         <div>

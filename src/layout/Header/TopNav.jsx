@@ -62,7 +62,7 @@ const TopNav = ({ navCollapsed, toggleCollapsedNav }) => {
                         <Dropdown.Toggle as="div" className="no-caret bg-transparent">
                             <Button variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover  d-xl-none" onClick={() => setShowDropdown(!showDropdown)} >
                                 <span className="icon">
-                                    <span className="feather-icon"><Search /></span>
+                                    <span className="feather-"><Search /></span>
                                 </span>
                             </Button>
                             <InputGroup className="d-xl-flex d-none">

@@ -28,7 +28,7 @@ const HkAvatarUploader = ({ id, defaultImg, firstName }) => {
 
     return (
         <>
-            <label htmlFor="photo-upload" className="avtuploder-circle">
+            <label htmlFor="photo-upload" className="avtuploder- circle">
                 {
                     imageSrc === "" ? (
                         <div className='avatar avatar-xl avatar-rounded avatar-soft-primary'>

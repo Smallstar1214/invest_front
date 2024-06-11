@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useWindowWidth } from '@react-hook/window-size';
 import classNames from 'classnames';
-import TaskInfo from './TaskInfo';
-import TodoHeader from './TodoHeader';
-import TodoSidebar from './TodoSidebar';
+import InvestmentInfo from './InvestmentInfo';
+import Header from './Header';
 import Body from './Body';
 
 const ActiveInvestments = () => {
@@ -19,13 +18,17 @@ const ActiveInvestments = () => {
 
     return (
         <div className="hk-pg-body py-0">
-            <div className={classNames("todoapp-wrap", { "todoapp-info-active": showAppInfo }, { "todoapp-sidebar-toggle": showSidebar })} >
-                <TodoSidebar />
-                <div className="todoapp-content">
+            <div
+                className={classNames("todoapp-wrap", { "todoapp-info-active": showAppInfo }, { "todoapp-sidebar-toggle": showSidebar })}
+            >
+                <div style={{ left: 0 }} className="todoapp-content">
                     <div className="todoapp-detail-wrap">
-                        <TodoHeader toggleSidebar={() => setShowSidebar(!showSidebar)} showSidebar={showSidebar} />
+                        <Header
+                            toggleSidebar={() => setShowSidebar(!showSidebar)}
+                            showSidebar={showSidebar}
+                        />
                         <Body showInfo={() => setShowAppInfo(true)} />
-                        <TaskInfo close={() => setShowAppInfo(!showAppInfo)} />
+                        <InvestmentInfo close={() => setShowAppInfo(!showAppInfo)} />
                     </div>
                 </div>
             </div>

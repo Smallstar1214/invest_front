@@ -46,6 +46,7 @@ import ReadOffering from "../views/Investments/Opportunities/read-offering";
 import Documents from "../views/Investments/Documents";
 import RiskProfile from "../views/Investments/RiskProfile";
 import KYCVerification from "../views/Investments/KYCVerification";
+import SuccessPage from "../views/Investments/Opportunities/read-offering/SuccessPage";
 
 export const routes = [
 
@@ -89,6 +90,7 @@ export const routes = [
     { path: 'investors', exact: true, component: Investors },
     { path: 'opportunities/new', exact: true, component: NewOpportunities },
     { path: 'opportunities/new/read-offering', exact: true, component: ReadOffering },
+    { path: 'opportunities/new/read-offering/success', exact: true, component: SuccessPage },
     { path: 'opportunities/active-investments', exact: true, component: ActiveInvestments },
     { path: 'accounts-and-security', exact: true, component: AccountsAndSecurity },
     { path: 'documents', exact: true, component: Documents },

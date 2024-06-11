@@ -5,20 +5,22 @@ import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import axios from "axios";
 import { message } from "antd";
 
-const companyNames = ['Medium', 'Figma', 'Intercom', 'Swiggy', 'Github', 'Dribble'];
+// const companyNames = ['Medium', 'Figma', 'Intercom', 'Swiggy', 'Github', 'Dribble'];
 const documentTypes = ['Public', 'Confidential'];
 
 const DocumentsTable = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [userRole, setUserRole] = useState('');
 
-  const [company, setCompany] = useState(companyNames[0]);
+  const [company, setCompany] = useState('');
+  const [companyNames, setCompanyNames] = useState([])
+  const [investorEmail, setInvestorEmail] = useState('');
+  const [investors, setInvestors] = useState([]);
   const [documentType, setDocumentType] = useState(documentTypes[0]);
 
   const [file, setFile] = useState(null);
-
-  const [userId, setUserId] = useState("");
 
   const [documentData, setDocumentData] = useState([]);
 
@@ -35,9 +37,9 @@ const DocumentsTable = () => {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('id', userId);
     formData.append('companyName', company);
     formData.append('type', documentType);
+    formData.append('shareTo', investorEmail);
 
     // axios.post('http://localhost:8080/download/document', formData)
     axios.post('https://autoinvest.ai/download/document', formData)
@@ -45,17 +47,17 @@ const DocumentsTable = () => {
           //After save file successfully
           message.success("Successfully saved");
           setShowUploadModal(false);
-          getMyCreatedDocuments(userId);
+          getMyCreatedDocuments(company); 
          })
          .catch(err => {
             console.log(err);
          })
   }
 
-  const getMyCreatedDocuments = async (id) => {
+  const getMyCreatedDocuments = async (company) => {
     try {
-      // const res = await fetch(`http://localhost:8080/document/getMyDocuments?id=${id}`,{
-      const res = await fetch('https://autoinvest.ai/document/getMyDocuments',{
+      // const res = await fetch(`http://localhost:8080/document/getMyDocuments?company=${company}`,{
+      const res = await fetch(`https://autoinvest.ai/document/getMyDocuments?company=${company}`,{
         method: 'GET',
         headers: {
           'Content-type': 'application/json'
@@ -73,14 +75,65 @@ const DocumentsTable = () => {
     }
   }
 
+  const getAllPublicDocuments = async() => {
+    try {
+      // const res = await fetch('http://localhost:8080/document/getAllPublicDocumnets', {
+      const res = await fetch('https://autoinvest.ai/document/getAllPublicDocumnets', {
+        method: 'GET',
+        headers: {
+          'Content-type': 'application/json'
+        },
+      })
+
+      if(res.ok) {
+        res.json().then(data => {
+          setDocumentData(data.data);
+        })
+      }
+    } catch(err) {
+      console.log(err);
+    }
+  }
+
+  const getAllInvestors = async() => {
+    try {
+      // const res = await fetch('http://localhost:8080/investor/getAllInvestors', {
+      const res = await fetch('https://autoinvest.ai/investor/getAllInvestors', {
+        method: 'GET',
+        headers: {
+          'Content-type': 'application/json'
+        },
+      })
+
+      if(res.ok) {
+        res.json().then(data => {
+          setInvestors(data);
+          setInvestorEmail(data[0].email);
+        })
+      }
+    } catch(err) {
+      console.log(err);
+    }
+  }
+
   const handleDeleteFile = (id) => {
     getMyCreatedDocuments(id);
   }
 
   useEffect(() => {
-    const userId = localStorage.getItem("jampackId");
-    setUserId(userId);
-    getMyCreatedDocuments(userId);
+    const companyName = localStorage.getItem("jampackUserName");
+    const role = localStorage.getItem("jampackRole");
+    setUserRole(role);
+
+    
+    if(role === "company") {
+      getMyCreatedDocuments(companyName);
+      getAllInvestors();
+      setCompany(companyName);
+    } else {      
+      getAllPublicDocuments();
+    }
+    
   },[])
 
   return (
@@ -98,12 +151,18 @@ const DocumentsTable = () => {
             }
           />
         </Form>
-        <Button
-          variant="primary"
-          onClick={() => setShowUploadModal(true)}
-        >
-          Upload File
-        </Button>
+        {
+          userRole === "company" ? (
+            <Button
+              variant="primary"
+              onClick={() => setShowUploadModal(true)}
+            >
+              Upload File
+            </Button>
+          ) : (
+            <></>
+          )
+        }
       </div>
       <HkDataTable
         rowsPerPage={10}
@@ -126,24 +185,29 @@ const DocumentsTable = () => {
                 </div>
             </header>
             <div className='contact-body contact-detail-body mx-2'>
+              {/* {
+                userRole === "admin" ? (
+                  <Row className='gx-3 align-items-center'>
+                    <Col lg={3} as={Form.Group} className='mb-3 text-center'>
+                        <Form.Label>Company</Form.Label>
+                    </Col>
+                    <Col lg={9} as={Form.Group} className='mb-3'>
+                      <select className="form-select" value={company} onChange={(e) => setCompany(e.target.value)}>
+                        {
+                          companyNames.map((name) => (
+                            <option value={name}>
+                              {name}
+                            </option>
+                          ))
+                        }
+                      </select>
+                    </Col> 
+                  </Row>
+                ) : (
+                  <></>
+                )
+              } */}
               <Row className='gx-3 align-items-center'>
-                <Col lg={3} as={Form.Group} className='mb-3 text-center'>
-                    <Form.Label>Company</Form.Label>
-                </Col>
-                <Col lg={9} as={Form.Group} className='mb-3'>
-                  <select className="form-select" value={company} onChange={(e) => setCompany(e.target.value)}>
-                    {
-                      companyNames.map((name) => (
-                        <option value={name}>
-                          {name}
-                        </option>
-                      ))
-                    }
-                  </select>
-                </Col> 
-              </Row>
-
-               <Row className='gx-3 align-items-center'>
                 <Col lg={3} as={Form.Group} className='mb-3 text-center'>
                     <Form.Label>Document Type</Form.Label>
                 </Col>
@@ -159,6 +223,29 @@ const DocumentsTable = () => {
                   </select>
                 </Col>
               </Row>
+
+              {
+                documentType === "Confidential" ? (
+                  <Row className='gx-3 align-items-center'>
+                    <Col lg={3} as={Form.Group} className='mb-3 text-center'>
+                        <Form.Label>Investor</Form.Label>
+                    </Col>
+                    <Col lg={9} as={Form.Group} className='mb-3'>
+                      <select className="form-select" value={investorEmail} onChange={(e) => setInvestorEmail(e.target.value)}>
+                        {
+                          investors && investors.map((investor) => (
+                            <option value={investor.email}>
+                              {investor.email}
+                            </option>
+                          ))
+                        }
+                      </select>
+                    </Col>
+                  </Row>
+                ) : (
+                  <></>
+                )
+              }
 
               <label htmlFor="upload-file" className="btn btn-primary btn-file mb-4">
                 {
@@ -180,7 +267,7 @@ const DocumentsTable = () => {
                     ) : (
                       {file}
                     )
-                  }
+                  }   
                   <input type="file" className="upload d-none" />
               </div> */}
 

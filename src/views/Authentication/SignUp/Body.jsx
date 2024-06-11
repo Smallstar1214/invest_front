@@ -24,12 +24,15 @@ const Body = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [category, setCategory] = useState('');
+  const [description, setDescription] = useState('')
+
 
   const history = useHistory();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = {firstName, lastName, userName, email, phone, password, role};
+    const formData = {firstName, lastName, userName, email, phone, password, role, category, description};
     try {
         // const res = await fetch('http://localhost:8080/auth/signup', {
         const res = await fetch('https://autoinvest.ai/auth/signup', {
@@ -47,9 +50,9 @@ const Body = () => {
               const role = data.role;
               localStorage.setItem("jampackRole", role);
               localStorage.setItem("jampackId", data.id);
+              localStorage.setItem("jampackUserName", data.userName);
               history.push("/dashboard");
-            })
-            
+            }) 
         } else {
           res.json().then(data => {
             message.error(data.message);
@@ -141,7 +144,66 @@ const Body = () => {
                     {
                       role === "company" ? (
                         <Row className="gx-3">
-                          
+                          <Col lg={12} as={Form.Group} className="mb-3">
+                            <Form.Label>Company Name</Form.Label>
+                            <Form.Control
+                              placeholder="Enter Company name"
+                              type="text"
+                              value={userName} 
+                              onChange={e => setUserName(e.target.value)}
+                            />
+                          </Col>
+                          <Col lg={12} as={Form.Group} className="mb-3">
+                            <Form.Label>Phone</Form.Label>
+                            <Form.Control
+                              placeholder="Enter Company contact phone number"
+                              type="text"
+                              value={phone} 
+                              onChange={e => setPhone(e.target.value)}
+                            />
+                          </Col>
+                          <Col lg={12} as={Form.Group} className="mb-3">
+                            <Form.Label>Company Category</Form.Label>
+                            <Form.Control
+                              placeholder="Enter Company Category"
+                              type="text"
+                              value={category} 
+                              onChange={e => setCategory(e.target.value)}
+                            />
+                          </Col>
+                          <Col lg={12} as={Form.Group} className="mb-3">
+                            <Form.Label>Company Description</Form.Label>
+                            <Form.Control
+                              placeholder="Enter Description"
+                              as="textarea"
+                              value={description} 
+                              onChange={e => setDescription(e.target.value)}
+                            />
+                          </Col>
+                          <Col lg={12} as={Form.Group} className="mb-3">
+                            <Form.Label>Password</Form.Label>
+                            <InputGroup className="password-check">
+                              <span className="input-affix-wrapper affix-wth-text">
+                                <Form.Control
+                                  placeholder="6+ characters"
+                                  type={showPassword ? "text" : "password"}
+                                  value={password} 
+                                  onChange={e => setPassword(e.target.value)}
+                                />
+                                <Link
+                                  to="#"
+                                  className="input-suffix text-primary text-uppercase fs-8 fw-medium"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                >
+                                  {showPassword ? (
+                                    <span>Hide</span>
+                                  ) : (
+                                    <span>Show</span>
+                                  )}
+                                </Link>
+                              </span>
+                            </InputGroup>
+                          </Col>
                         </Row>
                       ) : (
                         <Row className="gx-3">

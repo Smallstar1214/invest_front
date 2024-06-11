@@ -12,7 +12,7 @@ import { FormControl, Input, InputLabel, ListItemText, MenuItem, Select } from '
 //Image
 // import avatar2 from '../../../assets/dist/img/avatar2.jpg';
 
-const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email, phone, business, language, investSize, howSoon, summary }) => {
+const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email, phone, business, language, investSize, howSoon, summary, notes }) => {
 
     const [showEdit, setShowEdit] = useState(false);
     const [role, setRole] = useState("");
@@ -40,6 +40,11 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
     const [isEditSummary, setIsEditSummary] = useState(false);
     const [showSummary, setShowSummary] = useState("");
     const [editSummary, setEditSummary] = useState("");
+
+    const [showNotes, setShowNotes] = useState([]);
+    const [editNote, setEditNote] = useState("");
+    const [isEditNote, setIsEditNote] = useState(false);
+
 
     const types = ['startups', 'pre-IPOs', 'IPOs'];
     const languages = ['English', 'Spanish', 'Dutch', 'French', 'German', 'Greek', 'Italian', 'Portuguese', 'Swedish', 'Polish', 'Russian', 'Turkish', 'Ukrainian', 'Arabic', 'Hebrew', 'Urdu', 'Hindi', 'Thai', 'Vietnamese', 'Chinese', 'Korean', 'Japanese', 'Mandarin'];
@@ -167,6 +172,39 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
         }
     }
 
+    const addNote = async() => {
+        const companyName = localStorage.getItem('jampackUserName');
+        const note = {
+            companyName : companyName, 
+            note: editNote,
+        };
+        
+        const formData = {id, note};
+
+        try {
+            // const res = await fetch('http://localhost:8080/investor/updateNotes', {
+            const res = await fetch('https://autoinvest.ai/investor/updateNotes', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                body:JSON.stringify(formData)
+            })
+
+            if(res.ok) {
+                message.success("Update correctly");
+            }
+        } catch(err) {
+            console.log(err);
+        }
+
+        setShowNotes(
+            [...showNotes, note]
+        );
+        setEditNote("");
+        setIsEditNote(false);
+    }
+
     const onHideModal = () => {
         if(showSummary === "") {
             setIsEditSummary(true);
@@ -194,18 +232,35 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
         setShowInvestDay(howSoon);
         setEditInvestDay(howSoon);
 
+        const loginUserRole = localStorage.getItem('jampackRole');
+        const companyName = localStorage.getItem('jampackUserName');
+        setRole(loginUserRole);
+
+        if(loginUserRole === "company") {
+            const finalNotes = notes.filter(item => item.companyName === companyName);
+            setShowNotes(finalNotes);
+        } else {
+            setShowNotes(notes);
+        }
+
         if(summary === "") {
-            setIsEditSummary(true);
+            setIsEditSummary(true); 
         } else {
             setIsEditSummary(false);
         }
         setShowSummary(summary);
         setEditSummary(summary);
-    },[id]);
 
-    useEffect(() => {
-        setRole(localStorage.getItem('jampackRole'));
-    },[])
+        
+        // if(loginUserRole === "company") {
+        //     console.log("loginUserRole: ",loginUserRole);
+        //     getAllNotesForCompany();
+        // } else {
+        //     console.log("loginUserRole: ",loginUserRole);
+        //     getAllNotes();
+        // }
+
+    },[id]);
 
     return (
         <>
@@ -311,7 +366,7 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                                     </Dropdown.Item>
                                     <Dropdown.Item as={Link} to="/apps/email">
                                         <span className="feather-icon dropdown-icon">
-                                            <XSquare />
+                                            <XSquare /> 
                                         </span>
                                         <span>Close</span>
                                     </Dropdown.Item>
@@ -554,16 +609,23 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                                                     <span className="nav-link-text">Invested In</span>
                                                 </Nav.Link>
                                             </Nav.Item>
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="tab_notes">
-                                                    <span className="nav-icon-wrap">
-                                                        <span className="feather-icon">
-                                                            <Edit3 />
-                                                        </span>
-                                                    </span>
-                                                    <span className="nav-link-text">Notes</span>
-                                                </Nav.Link>
-                                            </Nav.Item>
+                                            {
+                                                role === "investor" ? (
+                                                    <></>
+                                                ) : (
+                                                    <Nav.Item>
+                                                        <Nav.Link eventKey="tab_notes">
+                                                            <span className="nav-icon-wrap">
+                                                                <span className="feather-icon">
+                                                                    <Edit3 />
+                                                                </span>
+                                                            </span>
+                                                            <span className="nav-link-text">Notes</span>
+                                                        </Nav.Link>
+                                                    </Nav.Item>
+                                                )
+                                            }
+                                            
                                             <Nav.Item>
                                                 <Nav.Link eventKey="tab_email">
                                                     <span className="nav-icon-wrap">
@@ -643,18 +705,93 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                                                 </Form>
                                             </Tab.Pane>
                                             <Tab.Pane eventKey="tab_notes">
-                                                <Form>
-                                                    <Row>
-                                                        <Col md={12} as={Form.Group} className="mb-3">
-                                                            <div className="form-label-group">
-                                                                <Form.Label>Write a Note</Form.Label>
-                                                                <small className="text-muted">1200</small>
-                                                            </div>
-                                                            <Form.Control as="textarea" rows={8} placeholder="Write an internal note" />
-                                                        </Col>
-                                                    </Row>
-                                                    <Button variant="outline-light">Add Note</Button>
-                                                </Form>
+                                                {
+                                                    role === "company" ? (
+                                                        <>
+                                                            {
+                                                                showNotes && showNotes.map(item => (
+                                                                    <Row>
+                                                                        <Col md={12} className='mb-3'>
+                                                                            <span>
+                                                                                {item.note}
+                                                                            </span>
+                                                                        </Col>
+                                                                    </Row>
+                                                                ))
+                                                            }
+
+                                                            {
+                                                                isEditNote ? (
+                                                                    <Form>
+                                                                        <Row>
+                                                                            <Col md={12} as={Form.Group} className="mb-3">
+                                                                                <div className="form-label-group">
+                                                                                    <Form.Label>Write a Note</Form.Label>
+                                                                                    <small className="text-muted">1200</small>
+                                                                                </div>
+                                                                                <Form.Control as="textarea" rows={8} placeholder="Write an internal note" value={editNote} onChange={(e) => setEditNote(e.target.value)}  />
+                                                                            </Col>
+                                                                        </Row>
+                                                                        <Button variant="outline-light" onClick={addNote}>Add Note</Button>
+                                                                    </Form>
+                                                                ) : (
+                                                                    <Row>
+                                                                        <Col md={9} className='mb-e'></Col>
+                                                                        <Col md={3} className='mb-e'>
+                                                                            <Button variant='outline-light' onClick={() => setIsEditNote(true)} >Add New Note</Button>
+                                                                        </Col>
+                                                                    </Row>
+                                                                )
+                                                            }
+                                                            
+                                                        </>
+                                                            
+                                                    ) : (
+                                                            role === "admin" ? (
+                                                                <Row>
+                                                                    {
+                                                                        showNotes && showNotes.map(item => (
+                                                                            <>
+                                                                                <Col md={3} className='mb-3'>
+                                                                                    <span>{item.companyName} : </span>
+                                                                                </Col>
+                                                                                <Col md={9} className='mb-3'>
+                                                                                    <span>{item.note}</span>
+                                                                                </Col>
+                                                                            </>
+                                                                        ))
+                                                                    }
+
+                                                                    {
+                                                                        isEditNote ? (
+                                                                            <Form>
+                                                                                <Row>
+                                                                                    <Col md={12} as={Form.Group} className="mb-3">
+                                                                                        <div className="form-label-group">
+                                                                                            <Form.Label>Write a Note</Form.Label>
+                                                                                            <small className="text-muted">1200</small>
+                                                                                        </div>
+                                                                                        <Form.Control as="textarea" rows={8} placeholder="Write an internal note" value={editNote} onChange={(e) => setEditNote(e.target.value)}  />
+                                                                                    </Col>
+                                                                                </Row>
+                                                                                <Button variant="outline-light" onClick={addNote}>Add Note</Button>
+                                                                            </Form>
+                                                                        ) : (
+                                                                            <Row>
+                                                                                <Col md={9} className='mb-e'></Col>
+                                                                                <Col md={3} className='mb-e'>
+                                                                                    <Button variant='outline-light' onClick={() => setIsEditNote(true)} >Add New Note</Button>
+                                                                                </Col>
+                                                                            </Row>
+                                                                        )
+                                                                    }
+                                                                </Row>
+                                                            ) : (
+                                                                <></>
+                                                            )
+                                                    )
+                                                }
+                                                
                                             </Tab.Pane>
                                             <Tab.Pane eventKey="tab_email">
                                                 <Form>
@@ -798,12 +935,12 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
                     <div className='contact-body contact-detail-body mx-2'>
                         <Row className='gx-3'>
                             <Col lg={3} as={Form.Group} className='mb-3'>
-                                <Form.Label>Investment Size</Form.Label>
+                                <Form.Label>First Name</Form.Label>
                             </Col>
                             <Col lg={9} as={Form.Group} className='mb-3'>
                                 <Form.Control
-                                    type="number"
-                                    value={editInvestmentSize}
+                                    type="text"
+                                    value={editFirstName}
                                     onChange={e => setEditFirstName(e.target.value)}
                                 />
                             </Col>
@@ -958,4 +1095,4 @@ const InvestorDetails = ({ show, onHide, id, avatar, firstName, lastName, email,
     )
 }
 
-export default InvestorDetails
+export default InvestorDetails;

@@ -28,6 +28,7 @@ const InvestorCardsBody = () => {
   const [investSize, setInvestSize] = useState(0);
   const [howSoon, setHowSoon] = useState(0);
   const [summary, setSummary] = useState("");
+  const [notes, setNotes] = useState([]);
 
   const [investors, setInvestors] = useState(null);
   const [displayInvestors, setDisplayInvestors] = useState(null);
@@ -295,6 +296,7 @@ const InvestorCardsBody = () => {
                           setInvestSize(item?.investSize);
                           setHowSoon(item?.howSoon);
                           setSummary(item?.summary);
+                          setNotes(item?.notes);
                         }}
                       >
                         <span className="feather-icon me-2">
@@ -341,6 +343,7 @@ const InvestorCardsBody = () => {
         investSize={investSize}
         howSoon={howSoon}
         summary={summary}
+        notes={notes}
         onHide={() => HideDetail()}
       />
     </>

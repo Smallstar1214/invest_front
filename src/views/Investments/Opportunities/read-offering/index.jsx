@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import classNames from "classnames";
 import Body from "./Body";
+import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 
 const ReadOffering = () => {
+  const location = useLocation();
+
+  const {dataKey} = location.state || {};
   const [showSidebar, setShowSidebar] = useState(false);
 
   return (
@@ -14,7 +18,7 @@ const ReadOffering = () => {
       >
         <div style={{ left: 0 }} className="integrationsapp-content">
           <div className="integrationsapp-detail-wrap">
-            <Body />
+            <Body data = {dataKey} />
           </div>
         </div>
       </div>
